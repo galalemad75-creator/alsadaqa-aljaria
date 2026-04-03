@@ -104,8 +104,8 @@ body.dark .dl-status{color:var(--gold)}
 
 /* ===== SHARE MODAL ===== */
 .sh-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;justify-content:center;align-items:center;animation:fadeIn .2s}
-.sh-modal-bg.show{display:flex}
-.sh-modal{background:var(--card);border-radius:20px;padding:24px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.4);border:2px solid var(--gold);animation:popIn .3s cubic-bezier(.68,-.55,.27,1.55)}
+.sh-modal-bg.show{display:flex !important}
+.sh-modal{background:var(--card);border-radius:20px;padding:24px;max-width:360px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.4);border:2px solid var(--gold);animation:popIn .3s cubic-bezier(.68,-.55,.27,1.55)}
 .sh-modal h3{font-family:'Amiri',serif;font-size:18px;color:var(--accent);text-align:center;margin-bottom:16px}
 body.dark .sh-modal h3{color:var(--gold)}
 .sh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
@@ -174,8 +174,8 @@ body.dark .sh-btn2.copy-btn:hover{background:var(--gold);color:#111}
 </div>
 
 <!-- SHARE MODAL -->
-<div class="sh-modal-bg" id="shModal">
-  <div class="sh-modal">
+<div class="sh-modal-bg" id="shModal" onclick="closeShModal()">
+  <div class="sh-modal" onclick="event.stopPropagation()">
     <h3 id="shTitle">📤 مشاركة الدعاء</h3>
     <div class="sh-grid">
       <a class="sh-btn whatsapp" id="shWhatsApp" href="#" target="_blank" rel="noopener">
@@ -197,9 +197,9 @@ body.dark .sh-btn2.copy-btn:hover{background:var(--gold);color:#111}
     </div>
     <div class="sh-row2">
       <button class="sh-btn2 copy-btn" id="shCopy" onclick="copyShareText()">📋 نسخ النص</button>
-      <a class="sh-btn2" id="shSMS" href="#" target="_blank" rel="noopener">📩 SMS</a>
+      <button class="sh-btn2 copy-btn" onclick="shareAsImage()">📸 حفظ كصورة</button>
     </div>
-    <button class="dl-cancel" onclick="closeShModal()">إلغاء</button>
+    <button class="dl-cancel" onclick="closeShModal()">✖ إغلاق</button>
   </div>
 </div>
 
@@ -411,8 +411,9 @@ function openDl(i){dlIdx=i;document.getElementById('dlModal').classList.add('sho
 function closeModal(){document.getElementById('dlModal').classList.remove('show');dlIdx=-1}
 
 // ===== SHARE =====
-let shareTextCache='';
+let shareTextCache='',shareIdxCache=-1;
 function shareDua(i){
+  shareIdxCache=i;
   const r=getRel(),m=r.gender==='m';
   const arBody=fill(dAr[i],r);
   const enBody=fill(dEn[i],r);
@@ -423,32 +424,31 @@ function shareDua(i){
   const pageUrl='https://galalemad75-creator.github.io/alsadaqa-aljaria/';
   shareTextCache=text;
 
-  // Always open share modal (works on all devices)
+  // Set social media share links
   const encoded=encodeURIComponent(text);
   const urlEncoded=encodeURIComponent(pageUrl);
   document.getElementById('shWhatsApp').href='https://wa.me/?text='+encoded;
   document.getElementById('shTelegram').href='https://t.me/share/url?url='+urlEncoded+'&text='+encoded;
-  document.getElementById('shTwitter').href='https://twitter.com/intent/tweet?text='+encoded+'&url='+urlEncoded;
-  document.getElementById('shFacebook').href='https://www.facebook.com/sharer/sharer.php?u='+urlEncoded+'&quote='+encoded;
-  document.getElementById('shSMS').href='sms:?body='+encoded;
+  document.getElementById('shTwitter').href='https://twitter.com/intent/tweet?text='+encoded.substring(0,240)+'&url='+urlEncoded;
+  document.getElementById('shFacebook').href='https://www.facebook.com/sharer/sharer.php?u='+urlEncoded;
   document.getElementById('shTitle').textContent=lang==='ar'?'📤 مشاركة الدعاء':'📤 Share Dua';
   document.getElementById('shModal').classList.add('show');
+  document.getElementById('shCopy').textContent=lang==='ar'?'📋 نسخ النص':'📋 Copy';
 }
 function closeShModal(){document.getElementById('shModal').classList.remove('show')}
-async function copyShareText(){
-  try{
-    await navigator.clipboard.writeText(shareTextCache);
-    const btn=document.getElementById('shCopy');
-    btn.textContent=lang==='ar'?'✅ تم النسخ!':'✅ Copied!';
-    setTimeout(()=>{btn.textContent=lang==='ar'?'📋 نسخ النص':'📋 Copy'},2000);
-  }catch(e){
-    // Fallback for older browsers
-    const ta=document.createElement('textarea');ta.value=shareTextCache;ta.style.position='fixed';ta.style.opacity='0';
-    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
-    const btn=document.getElementById('shCopy');
-    btn.textContent=lang==='ar'?'✅ تم النسخ!':'✅ Copied!';
-    setTimeout(()=>{btn.textContent=lang==='ar'?'📋 نسخ النص':'📋 Copy'},2000);
-  }
+function copyShareText(){
+  const ta=document.createElement('textarea');ta.value=shareTextCache;ta.style.position='fixed';ta.style.opacity='0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy')}catch(e){navigator.clipboard&&navigator.clipboard.writeText(shareTextCache)}
+  document.body.removeChild(ta);
+  const btn=document.getElementById('shCopy');
+  btn.textContent=lang==='ar'?'✅ تم النسخ!':'✅ Copied!';
+  setTimeout(()=>{btn.textContent=lang==='ar'?'📋 نسخ النص':'📋 Copy'},2000);
+}
+function shareAsImage(){
+  // Open the text card generator as shareable image
+  if(shareIdxCache>=0)openDl(shareIdxCache);
+  closeShModal();
 }
 
 async function doDownload(type){
