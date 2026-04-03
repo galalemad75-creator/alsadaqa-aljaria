@@ -412,7 +412,7 @@ function closeModal(){document.getElementById('dlModal').classList.remove('show'
 
 // ===== SHARE =====
 let shareTextCache='';
-async function shareDua(i){
+function shareDua(i){
   const r=getRel(),m=r.gender==='m';
   const arBody=fill(dAr[i],r);
   const enBody=fill(dEn[i],r);
@@ -423,12 +423,7 @@ async function shareDua(i){
   const pageUrl='https://galalemad75-creator.github.io/alsadaqa-aljaria/';
   shareTextCache=text;
 
-  // Try native share first (mobile)
-  if(navigator.share){
-    try{await navigator.share({title:title,text:text,url:pageUrl});return}catch(e){if(e.name==='AbortError')return}
-  }
-
-  // Open social media share modal
+  // Always open share modal (works on all devices)
   const encoded=encodeURIComponent(text);
   const urlEncoded=encodeURIComponent(pageUrl);
   document.getElementById('shWhatsApp').href='https://wa.me/?text='+encoded;
