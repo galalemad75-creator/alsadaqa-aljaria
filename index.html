@@ -173,35 +173,7 @@ body.dark .sh-btn2.copy-btn:hover{background:var(--gold);color:#111}
 <div class="foot" id="h_foot">نفحات الرحمة ✨</div>
 </div>
 
-<!-- SHARE MODAL -->
-<div class="sh-modal-bg" id="shModal" onclick="closeShModal()">
-  <div class="sh-modal" onclick="event.stopPropagation()">
-    <h3 id="shTitle">📤 مشاركة الدعاء</h3>
-    <div class="sh-grid">
-      <a class="sh-btn whatsapp" id="shWhatsApp" href="#" target="_blank" rel="noopener">
-        <span class="sh-icon">💬</span>
-        <span class="sh-name">واتساب</span>
-      </a>
-      <a class="sh-btn telegram" id="shTelegram" href="#" target="_blank" rel="noopener">
-        <span class="sh-icon">✈️</span>
-        <span class="sh-name">تيليجرام</span>
-      </a>
-      <a class="sh-btn twitter" id="shTwitter" href="#" target="_blank" rel="noopener">
-        <span class="sh-icon">🐦</span>
-        <span class="sh-name">تويتر</span>
-      </a>
-      <a class="sh-btn facebook" id="shFacebook" href="#" target="_blank" rel="noopener">
-        <span class="sh-icon">📘</span>
-        <span class="sh-name">فيسبوك</span>
-      </a>
-    </div>
-    <div class="sh-row2">
-      <button class="sh-btn2 copy-btn" id="shCopy" onclick="copyShareText()">📋 نسخ النص</button>
-      <button class="sh-btn2 copy-btn" onclick="shareAsImage()">📸 حفظ كصورة</button>
-    </div>
-    <button class="dl-cancel" onclick="closeShModal()">✖ إغلاق</button>
-  </div>
-</div>
+<!-- SHARE MODAL - dynamic (created by JS) -->
 
 <!-- DOWNLOAD MODAL -->
 <div class="modal-bg" id="dlModal">
@@ -399,9 +371,14 @@ function finishDua(i){
 function toggleDua(i){if(playingIdx===i){stopAll();return}playDua(i)}
 function playAll(){if(playingAll){stopAll();return}if(!document.getElementById('out').classList.contains('show'))go();playingAll=true;qi=0;updAllBtn();playDua(0)}
 function stopAll(){
-  if(speechSynthesis)speechSynthesis.cancel();if(timerHandle){clearInterval(timerHandle);timerHandle=null}
-  playingAll=false;if(playingIdx>=0){const c=document.getElementById('d'+playingIdx);if(c){c.classList.remove('playing');document.getElementById('bar'+playingIdx).style.width='0'}const pb=document.getElementById('pb'+playingIdx);if(pb){pb.textContent='▶';pb.classList.remove('on')}}
-  playingIdx=-1;showStop(false);updAllBtn();
+  try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(e){}
+  if(timerHandle){clearInterval(timerHandle);timerHandle=null}
+  playingAll=false;playingIdx=-1;
+  // Reset all cards
+  document.querySelectorAll('.dua.playing').forEach(c=>{c.classList.remove('playing')});
+  document.querySelectorAll('.dbtn-play.on').forEach(b=>{b.textContent='▶';b.classList.remove('on')});
+  document.querySelectorAll('.dua-prog .bar').forEach(b=>{b.style.width='0'});
+  showStop(false);updAllBtn();
 }
 function showStop(s){document.getElementById('btnStop').style.display=s?'block':'none'}
 function updAllBtn(){const b=document.getElementById('btnAll');b.classList.remove('on');b.textContent=lang==='ar'?'🔊 اقرأ الكل':'🔊 Read All'}
@@ -411,9 +388,7 @@ function openDl(i){dlIdx=i;document.getElementById('dlModal').classList.add('sho
 function closeModal(){document.getElementById('dlModal').classList.remove('show');dlIdx=-1}
 
 // ===== SHARE =====
-let shareTextCache='',shareIdxCache=-1;
 function shareDua(i){
-  shareIdxCache=i;
   const r=getRel(),m=r.gender==='m';
   const arBody=fill(dAr[i],r);
   const enBody=fill(dEn[i],r);
@@ -422,33 +397,50 @@ function shareDua(i){
   const prefix='🤲 اللهم اغفر '+call+' وارحم'+(m?'ه':'ها');
   const text=prefix+'\n\n'+arBody+'\n\n── '+title+' ──\n\n🇬🇧 O Allah, forgive '+callEn+' and have mercy on '+(m?'him':'them')+'. '+enBody+'\n\n✨ نفحات الرحمة — الصدقة الجارية';
   const pageUrl='https://galalemad75-creator.github.io/alsadaqa-aljaria/';
-  shareTextCache=text;
 
-  // Set social media share links
+  // Build share modal inline
+  let existing=document.getElementById('shareOverlay');
+  if(existing)existing.remove();
+
   const encoded=encodeURIComponent(text);
   const urlEncoded=encodeURIComponent(pageUrl);
-  document.getElementById('shWhatsApp').href='https://wa.me/?text='+encoded;
-  document.getElementById('shTelegram').href='https://t.me/share/url?url='+urlEncoded+'&text='+encoded;
-  document.getElementById('shTwitter').href='https://twitter.com/intent/tweet?text='+encoded.substring(0,240)+'&url='+urlEncoded;
-  document.getElementById('shFacebook').href='https://www.facebook.com/sharer/sharer.php?u='+urlEncoded;
-  document.getElementById('shTitle').textContent=lang==='ar'?'📤 مشاركة الدعاء':'📤 Share Dua';
-  document.getElementById('shModal').classList.add('show');
-  document.getElementById('shCopy').textContent=lang==='ar'?'📋 نسخ النص':'📋 Copy';
+
+  const ov=document.createElement('div');
+  ov.id='shareOverlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;justify-content:center;align-items:center;padding:20px';
+
+  ov.innerHTML=`<div style="background:#fdfaf3;border-radius:20px;padding:24px;max-width:360px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.4);border:2px solid #c9a84c;font-family:'Noto Naskh Arabic','Amiri',serif;direction:rtl">
+    <h3 style="text-align:center;color:#0b3d2e;margin-bottom:16px;font-size:18px">📤 مشاركة الدعاء</h3>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px">
+      <a href="https://wa.me/?text=${encoded}" target="_blank" rel="noopener" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border:2px solid #ddd;border-radius:14px;background:#fff;text-decoration:none;color:#333;transition:.2s" onmouseover="this.style.background='#25D366';this.style.color='#fff';this.style.borderColor='#25D366'" onmouseout="this.style.background='#fff';this.style.color='#333';this.style.borderColor='#ddd'">
+        <span style="font-size:28px">💬</span><span style="font-size:13px;font-weight:700">واتساب</span>
+      </a>
+      <a href="https://t.me/share/url?url=${urlEncoded}&text=${encoded}" target="_blank" rel="noopener" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border:2px solid #ddd;border-radius:14px;background:#fff;text-decoration:none;color:#333;transition:.2s" onmouseover="this.style.background='#0088cc';this.style.color='#fff';this.style.borderColor='#0088cc'" onmouseout="this.style.background='#fff';this.style.color='#333';this.style.borderColor='#ddd'">
+        <span style="font-size:28px">✈️</span><span style="font-size:13px;font-weight:700">تيليجرام</span>
+      </a>
+      <a href="https://twitter.com/intent/tweet?text=${encoded.substring(0,240)}&url=${urlEncoded}" target="_blank" rel="noopener" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border:2px solid #ddd;border-radius:14px;background:#fff;text-decoration:none;color:#333;transition:.2s" onmouseover="this.style.background='#1DA1F2';this.style.color='#fff';this.style.borderColor='#1DA1F2'" onmouseout="this.style.background='#fff';this.style.color='#333';this.style.borderColor='#ddd'">
+        <span style="font-size:28px">🐦</span><span style="font-size:13px;font-weight:700">تويتر</span>
+      </a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=${urlEncoded}" target="_blank" rel="noopener" style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border:2px solid #ddd;border-radius:14px;background:#fff;text-decoration:none;color:#333;transition:.2s" onmouseover="this.style.background='#1877F2';this.style.color='#fff';this.style.borderColor='#1877F2'" onmouseout="this.style.background='#fff';this.style.color='#333';this.style.borderColor='#ddd'">
+        <span style="font-size:28px">📘</span><span style="font-size:13px;font-weight:700">فيسبوك</span>
+      </a>
+    </div>
+    <button id="copyBtnShare" onclick="copyShare(this,'${encoded}')" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:12px;background:#fff;cursor:pointer;font-family:inherit;font-size:14px;font-weight:700;color:#333;margin-bottom:10px;transition:.2s" onmouseover="this.style.background='#0b3d2e';this.style.color='#fff'" onmouseout="this.style.background='#fff';this.style.color='#333'">📋 نسخ النص</button>
+    <button onclick="document.getElementById('shareOverlay').remove()" style="width:100%;padding:10px;border:none;border-radius:10px;background:#ddd0a8;color:#333;font-family:inherit;font-size:13px;cursor:pointer;font-weight:600">✖ إغلاق</button>
+  </div>`;
+
+  document.body.appendChild(ov);
+  // Close on background click
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove()});
 }
-function closeShModal(){document.getElementById('shModal').classList.remove('show')}
-function copyShareText(){
-  const ta=document.createElement('textarea');ta.value=shareTextCache;ta.style.position='fixed';ta.style.opacity='0';
+function copyShare(btn,encoded){
+  const text=decodeURIComponent(encoded);
+  const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
   document.body.appendChild(ta);ta.select();
-  try{document.execCommand('copy')}catch(e){navigator.clipboard&&navigator.clipboard.writeText(shareTextCache)}
+  try{document.execCommand('copy')}catch(e){try{navigator.clipboard.writeText(text)}catch(e2){}}
   document.body.removeChild(ta);
-  const btn=document.getElementById('shCopy');
-  btn.textContent=lang==='ar'?'✅ تم النسخ!':'✅ Copied!';
-  setTimeout(()=>{btn.textContent=lang==='ar'?'📋 نسخ النص':'📋 Copy'},2000);
-}
-function shareAsImage(){
-  // Open the text card generator as shareable image
-  if(shareIdxCache>=0)openDl(shareIdxCache);
-  closeShModal();
+  btn.textContent='✅ تم النسخ!';
+  setTimeout(()=>{btn.textContent='📋 نسخ النص'},2000);
 }
 
 async function doDownload(type){
