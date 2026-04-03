@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>نفحات الرحمة</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700;700&family=Inter:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0b3d2e;--card:#fdfaf3;--text:#1a2e25;--gold:#c9a84c;--gold2:#e8c95a;--accent:#0b3d2e;--accent2:#145a43;--border:#ddd0a8;--muted:#8a8a7a;--input-bg:#fff;--dua-bg:#fff;--hl-bg:rgba(201,168,76,.12);--shadow:0 20px 60px rgba(0,0,0,.35)}
+body.dark{--bg:#0a0a0a;--card:#181818;--text:#e4e4d8;--gold:#d4a843;--gold2:#e8c060;--accent:#1a5a42;--accent2:#1e6b50;--border:#2a2a20;--muted:#6a6a5a;--input-bg:#222;--dua-bg:#1a1a18;--hl-bg:rgba(212,168,67,.15);--shadow:0 20px 60px rgba(0,0,0,.6)}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Naskh Arabic','Amiri',serif;background:var(--bg);min-height:100vh}
+body:not([dir="rtl"]){font-family:'Inter','Noto Naskh Arabic',sans-serif}
+.app{max-width:460px;margin:0 auto;padding:12px 10px 30px}
+.hero{background:linear-gradient(135deg,var(--accent),#0d5c4a,var(--accent2));border-radius:20px;padding:30px 20px 24px;text-align:center;position:relative;overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow)}
+body.dark .hero{background:linear-gradient(135deg,#142820,#0d4a3a,#163028)}
+.hero h1{font-family:'Amiri',serif;font-size:28px;color:var(--gold2);text-shadow:0 2px 10px rgba(0,0,0,.3)}
+.hero p{font-size:12px;color:#a8d5ba;margin-top:6px;letter-spacing:1px}
+.hero .bism{margin-top:12px;font-family:'Amiri',serif;font-size:16px;color:var(--gold);opacity:.9}
+.sec{background:var(--card);border-radius:16px;padding:16px;margin-bottom:10px;box-shadow:0 4px 20px rgba(0,0,0,.08);border:1px solid var(--border);animation:su .5s ease-out both}
+body.dark .sec{box-shadow:0 4px 20px rgba(0,0,0,.3)}
+@keyframes su{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.sec-lbl{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px}
+body.dark .sec-lbl{color:var(--gold)}
+select{width:100%;padding:12px 14px;border:2px solid var(--border);border-radius:12px;font-size:15px;font-family:inherit;background:var(--input-bg);color:var(--text);cursor:pointer;direction:rtl;text-align:right;transition:.3s;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Cpath d='M6 8L1 3h10z' fill='%23888'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center}
+select:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(201,168,76,.15)}
+.voice-row{display:flex;align-items:center;justify-content:center;gap:12px}
+.vlbl{font-size:11px;color:var(--muted);transition:.2s;font-weight:500}.vlbl.on{color:var(--text);font-weight:700}
+.vtog{width:58px;height:30px;border-radius:15px;cursor:pointer;position:relative;border:none;outline:none;transition:.3s;background:linear-gradient(135deg,#e07a5f,#d06040)}
+.vtog.male{background:linear-gradient(135deg,#2a9d8f,#1a8d7f)}
+.vknob{width:26px;height:26px;background:#fff;border-radius:50%;position:absolute;top:2px;transition:.3s cubic-bezier(.68,-.55,.27,1.55);box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.vtog:not(.male) .vknob{left:2px}.vtog.male .vknob{left:30px}
+.btns{display:flex;gap:8px}
+.btn{flex:1;padding:12px;border:none;border-radius:12px;font-size:14px;font-family:inherit;font-weight:700;cursor:pointer;transition:.25s;text-align:center}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.btn:active{transform:translateY(0)}
+.btn-go{background:linear-gradient(135deg,var(--accent),#1a7a5a);color:#fff}
+.btn-all{background:linear-gradient(135deg,#8B6914,var(--gold));color:#fff}
+.btn-all.on{background:linear-gradient(135deg,#c0392b,#e74c3c)}
+.btn-stop{background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff}
+.tbar{display:flex;gap:8px;justify-content:center;margin-bottom:12px}
+.tb{padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--card);color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;font-weight:600;transition:.2s}
+.tb:hover{border-color:var(--gold);color:var(--gold)}
+.tb.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+body.dark .tb.on{background:var(--gold);color:#111}
+.out{display:none;animation:fadeIn .4s ease-out}.out.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.soul-box{text-align:center;padding:10px;margin-bottom:12px;border:2px solid var(--gold);border-radius:12px;background:linear-gradient(135deg,rgba(201,168,76,.05),rgba(201,168,76,.02))}
+.soul-box small{font-size:10px;color:var(--accent);display:block}body.dark .soul-box small{color:var(--gold)}
+.soul-box b{font-family:'Amiri',serif;font-size:22px;color:var(--accent);display:block;margin-top:2px}body.dark .soul-box b{color:var(--gold)}
+.dua{margin-bottom:10px;border:1.5px solid var(--border);border-radius:14px;overflow:hidden;background:var(--dua-bg);transition:.3s;position:relative}
+.dua:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.1)}
+.dua.playing{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.25);animation:pg 1.5s infinite}
+@keyframes pg{0%,100%{box-shadow:0 0 0 3px rgba(201,168,76,.25)}50%{box-shadow:0 0 0 5px rgba(201,168,76,.35)}}
+.dua-head{background:linear-gradient(135deg,var(--accent),#0d5c4a);padding:8px 12px;display:flex;justify-content:space-between;align-items:center}
+body.dark .dua-head{background:linear-gradient(135deg,#142820,#0d4a3a)}
+.dua-title{font-family:'Amiri',serif;font-size:13px;font-weight:700;color:var(--gold2)}
+.dua-num{background:var(--gold);color:var(--accent);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.dua-body{padding:12px;font-family:'Amiri',serif;font-size:15px;line-height:2.4;color:var(--text);text-align:center}
+.dua-body .hl{color:var(--accent);font-weight:700;text-decoration:underline;text-decoration-color:var(--gold);text-underline-offset:4px}
+body.dark .dua-body .hl{color:var(--gold)}
+.dua-body .pf{color:#8B6914;font-weight:700;background:var(--hl-bg);padding:2px 6px;border-radius:4px}body.dark .dua-body .pf{color:var(--gold)}
+.en-line{font-family:'Inter',sans-serif;font-size:12px;line-height:1.8;color:var(--muted);border-top:1px dashed var(--border);margin-top:10px;padding-top:8px;text-align:left;direction:ltr}
+body.dark .en-line{color:#888}
+.ltag{display:inline-block;font-size:8px;padding:1px 5px;border-radius:8px;font-weight:700;background:#2a6b9f;color:#fff;margin-right:4px}
+.dua-foot{padding:6px 12px;font-size:9px;color:var(--muted);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.dua-prog{height:3px;background:var(--border);position:absolute;bottom:0;left:0;right:0}
+.dua-prog .bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));width:0;transition:width .2s;border-radius:0 2px 2px 0}
+.dua-acts{display:flex;gap:6px;align-items:center}
+.dbtn{width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:14px;transition:.2s}
+.dbtn:hover{transform:scale(1.1)}
+.dbtn-play{background:linear-gradient(135deg,var(--accent),#1a7a5a);color:#fff}
+.dbtn-play.on{background:linear-gradient(135deg,#c0392b,#e74c3c);animation:pls 1s infinite}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.6}}
+.dbtn-dl{background:linear-gradient(135deg,#2a6b9f,#3a8bcf);color:#fff}
+.dbtn-sh{background:linear-gradient(135deg,#6b3fa0,#9b59b6);color:#fff}
+.dua:nth-child(1){animation:su .4s ease-out .05s both}
+.dua:nth-child(2){animation:su .4s ease-out .1s both}
+.dua:nth-child(3){animation:su .4s ease-out .15s both}
+.dua:nth-child(4){animation:su .4s ease-out .2s both}
+.dua:nth-child(5){animation:su .4s ease-out .25s both}
+.dua:nth-child(n+6){animation:su .4s ease-out .3s both}
+
+/* ===== DOWNLOAD MODAL ===== */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;justify-content:center;align-items:center;animation:fadeIn .2s}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border-radius:20px;padding:24px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.4);border:2px solid var(--gold);animation:popIn .3s cubic-bezier(.68,-.55,.27,1.55)}
+@keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h3{font-family:'Amiri',serif;font-size:18px;color:var(--accent);text-align:center;margin-bottom:16px}
+body.dark .modal h3{color:var(--gold)}
+.dl-opt{display:flex;flex-direction:column;gap:10px}
+.dl-btn{padding:14px;border:2px solid var(--border);border-radius:12px;background:var(--dua-bg);cursor:pointer;text-align:center;transition:.2s;font-family:inherit}
+.dl-btn:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 4px 15px rgba(0,0,0,.1)}
+.dl-btn .dl-icon{font-size:24px;display:block;margin-bottom:6px}
+.dl-btn .dl-title{font-size:14px;font-weight:700;color:var(--text);display:block}
+.dl-btn .dl-desc{font-size:11px;color:var(--muted);display:block;margin-top:2px}
+.dl-cancel{margin-top:12px;width:100%;padding:10px;border:none;border-radius:10px;background:var(--border);color:var(--text);font-family:inherit;font-size:13px;cursor:pointer;font-weight:600}
+.dl-cancel:hover{background:var(--muted);color:#fff}
+.dl-status{text-align:center;padding:20px;font-size:14px;color:var(--accent)}
+body.dark .dl-status{color:var(--gold)}
+.dl-spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== SHARE MODAL ===== */
+.sh-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;justify-content:center;align-items:center;animation:fadeIn .2s}
+.sh-modal-bg.show{display:flex}
+.sh-modal{background:var(--card);border-radius:20px;padding:24px;max-width:340px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.4);border:2px solid var(--gold);animation:popIn .3s cubic-bezier(.68,-.55,.27,1.55)}
+.sh-modal h3{font-family:'Amiri',serif;font-size:18px;color:var(--accent);text-align:center;margin-bottom:16px}
+body.dark .sh-modal h3{color:var(--gold)}
+.sh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+.sh-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 8px;border:2px solid var(--border);border-radius:14px;background:var(--dua-bg);cursor:pointer;transition:.2s;text-decoration:none;color:var(--text)}
+.sh-btn:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.15);border-color:var(--gold)}
+.sh-btn .sh-icon{font-size:28px}
+.sh-btn .sh-name{font-size:11px;font-weight:700;font-family:inherit}
+.sh-btn.whatsapp:hover{background:#25D366;color:#fff;border-color:#25D366}
+.sh-btn.telegram:hover{background:#0088cc;color:#fff;border-color:#0088cc}
+.sh-btn.twitter:hover{background:#1DA1F2;color:#fff;border-color:#1DA1F2}
+.sh-btn.facebook:hover{background:#1877F2;color:#fff;border-color:#1877F2}
+.sh-row2{display:flex;gap:10px;margin-bottom:12px}
+.sh-btn2{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:2px solid var(--border);border-radius:12px;background:var(--dua-bg);cursor:pointer;transition:.2s;font-family:inherit;font-size:13px;font-weight:700;color:var(--text);text-decoration:none}
+.sh-btn2:hover{border-color:var(--gold);transform:translateY(-2px)}
+.sh-btn2.copy-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+body.dark .sh-btn2.copy-btn:hover{background:var(--gold);color:#111}
+
+.foot{text-align:center;padding:12px;font-size:9px;color:var(--muted);margin-top:8px}
+@media(max-width:400px){.hero h1{font-size:24px}.dua-body{font-size:13px}.en-line{font-size:11px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hero">
+  <h1 id="h_title">نَفَحَاتُ الرَّحْمَةِ</h1>
+  <p id="h_sub">الصَّدَقَةُ الجَارِيَةُ عَلَى أَرْوَاحِ الْمُسْلِمِينَ</p>
+  <div class="bism" id="h_bism">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+</div>
+
+<div class="sec">
+  <div class="tbar">
+    <button class="tb on" id="btnAr" onclick="setLang('ar')">🇸🇦 عربي</button>
+    <button class="tb" id="btnEn" onclick="setLang('en')">🇬🇧 English</button>
+    <button class="tb" onclick="toggleDark()" id="btnDark">🌙</button>
+  </div>
+  <div class="sec-lbl" id="lbl_rel">🔗 صلة القرابة</div>
+  <select id="rel" onchange="onRelChange()"></select>
+</div>
+
+<div class="sec">
+  <div class="voice-row">
+    <span class="vlbl on" id="vM">♂ رجل</span>
+    <button class="vtog male" id="vtog" onclick="toggleVoice()"><div class="vknob"></div></button>
+    <span class="vlbl" id="vF">♀ أنثى</span>
+    <span style="font-size:16px">🔊</span>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="btns">
+    <button class="btn btn-go" onclick="go()" id="lbl_go">🤲 ادعُ الآن</button>
+    <button class="btn btn-all" id="btnAll" onclick="playAll()">🔊 اقرأ الكل</button>
+  </div>
+  <div class="btns" style="margin-top:8px">
+    <button class="btn btn-stop" id="btnStop" onclick="stopAll()" style="display:none">⏹ توقف</button>
+  </div>
+</div>
+
+<div class="out" id="out">
+  <div class="soul-box"><small id="lbl_soul">الصدقة الجارية على</small><b id="rlabel"></b></div>
+  <div id="list"></div>
+</div>
+
+<div class="foot" id="h_foot">نفحات الرحمة ✨</div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="sh-modal-bg" id="shModal">
+  <div class="sh-modal">
+    <h3 id="shTitle">📤 مشاركة الدعاء</h3>
+    <div class="sh-grid">
+      <a class="sh-btn whatsapp" id="shWhatsApp" href="#" target="_blank" rel="noopener">
+        <span class="sh-icon">💬</span>
+        <span class="sh-name">واتساب</span>
+      </a>
+      <a class="sh-btn telegram" id="shTelegram" href="#" target="_blank" rel="noopener">
+        <span class="sh-icon">✈️</span>
+        <span class="sh-name">تيليجرام</span>
+      </a>
+      <a class="sh-btn twitter" id="shTwitter" href="#" target="_blank" rel="noopener">
+        <span class="sh-icon">🐦</span>
+        <span class="sh-name">تويتر</span>
+      </a>
+      <a class="sh-btn facebook" id="shFacebook" href="#" target="_blank" rel="noopener">
+        <span class="sh-icon">📘</span>
+        <span class="sh-name">فيسبوك</span>
+      </a>
+    </div>
+    <div class="sh-row2">
+      <button class="sh-btn2 copy-btn" id="shCopy" onclick="copyShareText()">📋 نسخ النص</button>
+      <a class="sh-btn2" id="shSMS" href="#" target="_blank" rel="noopener">📩 SMS</a>
+    </div>
+    <button class="dl-cancel" onclick="closeShModal()">إلغاء</button>
+  </div>
+</div>
+
+<!-- DOWNLOAD MODAL -->
+<div class="modal-bg" id="dlModal">
+  <div class="modal">
+    <h3 id="dlTitle">⬇ تحميل الدعاء</h3>
+    <div class="dl-opt" id="dlOpts">
+      <button class="dl-btn" onclick="doDownload('text')">
+        <span class="dl-icon">📝</span>
+        <span class="dl-title">بطاقة نصية جميلة</span>
+        <span class="dl-desc">صورة بخط عربي احترافي مع زخرفة إسلامية</span>
+      </button>
+      <button class="dl-btn" onclick="doDownload('audio')">
+        <span class="dl-icon">🔊</span>
+        <span class="dl-title">تسجيل صوتي MP3</span>
+        <span class="dl-desc">تحميل ملف الصوت المسجل + النص الإنجليزي</span>
+      </button>
+      <button class="dl-btn" onclick="doDownload('both')">
+        <span class="dl-icon">🎁</span>
+        <span class="dl-title">هدية كاملة</span>
+        <span class="dl-desc">البطاقة النصية + التسجيل الصوتي</span>
+      </button>
+    </div>
+    <div id="dlLoading" style="display:none">
+      <div class="dl-spinner"></div>
+      <div class="dl-status" id="dlStatus">جاري التحميل...</div>
+    </div>
+    <button class="dl-cancel" onclick="closeModal()">إلغاء</button>
+  </div>
+</div>
+
+<script>
+const CDN='https://raw.githubusercontent.com/galalemad75-creator/alsadaqa-aljaria/main/audio';
+let lang='ar',isDark=false,playingAll=false,qi=0,voiceIsMale=true,playingIdx=-1,timerHandle=null;
+let dlIdx=-1;
+
+const rels=[
+{v:'m|أَبِي',ar:'أبي',en:'My Father',cf:'my father'},
+{v:'f|أُمِّي',ar:'أمي',en:'My Mother',cf:'my mother'},
+{v:'m|أَخِي',ar:'أخي',en:'My Brother',cf:'my brother'},
+{v:'f|أُخْتِي',ar:'أختي',en:'My Sister',cf:'my sister'},
+{v:'m|جَدِّي',ar:'جدي',en:'My Grandfather',cf:'my grandfather'},
+{v:'f|جَدَّتِي',ar:'جدتي',en:'My Grandmother',cf:'my grandmother'},
+{v:'m|زَوْجِي',ar:'زوجي',en:'My Husband',cf:'my husband'},
+{v:'f|زَوْجَتِي',ar:'زوجتي',en:'My Wife',cf:'my wife'},
+{v:'m|اِبْنِي',ar:'ابني',en:'My Son',cf:'my son'},
+{v:'f|اِبْنَتِي',ar:'ابنتي',en:'My Daughter',cf:'my daughter'},
+{v:'m|عَمِّي',ar:'عمي',en:'My Uncle',cf:'my uncle'},
+{v:'f|خَالَتِي',ar:'خالتي',en:'My Aunt',cf:'my aunt'},
+{v:'m|صَدِيقِي',ar:'صديقي',en:'My Friend (M)',cf:'my friend'},
+{v:'f|صَدِيقَتِي',ar:'صديقتي',en:'My Friend (F)',cf:'my friend'},
+{v:'p|الْمُسْلِمِينَ',ar:'أموات المسلمين',en:'All Deceased Muslims',cf:'the deceased Muslims'},
+];
+
+const tAr=['دعاء المغفرة الشامل','دعاء الرحمة الواسعة','دعاء تثبيت الميت','دعاء محو الذنوب','دعاء النور والفسحة','دعاء الستر والعفو','دعاء الصبر والخلف','دعاء القرآن','دعاء الشفاعة','دعاء الأمن من النار','دعاء الضيافة','دعاء الفردوس الأعلى','دعاء كفالة إبراهيم','دعاء الشفاء','دعاء الأجر','دعاء الأمانة واللقاء','دعاء الشوق','دعاء علو الدرجات','دعاء الرحمة المطلقة','دعاء الاستغفار'];
+const tEn=['Comprehensive Forgiveness','Vast Mercy','Steadfastness','Erasing Sins','Light & Illumination','Covenant','Patience & Reward','Forgiveness','Paradise','Intercession','Coolness of Grave','Highest Paradise','Custody of Ibrahim','Healing','Divine Reward','Trust & Reunion','Longing','Elevation','Absolute Mercy','Remembrance'];
+const sAr=['رواه مسلم','الأثر المأثور','عن أبي هريرة','دعاء عمر','الأدعية المأثورة','عن عائشة','حديث أم سلمة','الأثر المأثور','من الأدعية','من الأدعية','من الأدعية','من الأدعية','فيمن مات صغيراً','من الأدعية','من القرآن','ختام الصدقة','من الأدعية','من الأدعية','من الأدعية','من دعاء الجنازة'];
+
+const dAr=[
+'اللهم اغفر {{PF}} وارحم{{HM}} وعاف{{HM}} واعف عنه، وأكرم نزل{{H}} ووسع مدخل{{H}}، واغسل{{HM}} بالماء والثلج والبرد، ونق{{HM}} من الخطايا كما نقيت الثوب الأبيض من الدنس، وأبدل{{HM}} دارا خيرا من دار{{H}} وأهلا خيرا من أهل{{H}} وزوجا خيرا من زوج{{H}}، وأدخل{{HM}} الجنة وأعذ{{HM}} من عذاب القبر وعذاب النار',
+'اللهم ارحم {{R}} رحمة واسعة تغني{{HM}} بها عمن سواك. اللهم اجعل قبر{{H}} روضة من رياض الجنة ولا تجعل{{H}} حفرة من حفر النار',
+'اللهم ثبت {{R}} عند السؤال. اللهم أنس{{HM}} في وحدت{{H}} وفي وحشت{{H}} وفي غربت{{H}}. اللهم أنزل{{HM}} منزلا مباركا وأنت خير المنزلين',
+'اللهم اغفر {{PF}} ما تقدم من ذنب{{H}} وما تأخر وما أخفى من عمل{{H}} وماعلن وما أسر وما أجهروما أنت أعلم به منه. أنت المقدم وأنت المؤخر لا إله إلا أنت',
+'اللهم اجعل قبر{{H}} نورا يضيء {{PF}} وافسح {{PF}} في قبر{{H}} مد بصر{{H}} وافرش قبر{{H}} من فراش الجنة',
+'اللهم {{R}} في ذمتك وحبل جوارك، فق{{HM}} من فتنة القبر وعذاب النار، وأنت أهل الوفاء والحق، فاغفر {{PF}} وارحم{{HM}} إنك أنت الغفور الرحيم',
+'إنا لله وإنا إليه راجعون. اللهم أجرنا في مصيبتنا وأخلف لنا خيرا منها. اللهم ارحم {{R}} وارفع درجت{{H}} في المهديين واخلف{{H}} في عقب{{H}} في الغابرين',
+'اللهم إن {{KN}} {{R}} يتلو كتابك فشفع {{PF}} القرآن وارحم{{HM}} من النيران واجعل{{HM}} يا رحمن يرتي في الجنة',
+'اللهم أعط {{R}} شفاعة يوم القيامة حتى تدخل{{HM}} الجنة برحمتك. اللهم أمن{{HM}} من فزع يوم القيامة واجعل نفس{{H}} آمنة مطمئنة',
+'اللهم ق {{R}} عذاب النار. اللهم أدخل{{HM}} الجنة من غير مناقشة حساب ولا سابقة عذاب برحمتك يا أرحم الراحمين',
+'اللهم ضيف {{R}} ضيافة حسنة في قبر{{H}} وبدل{{HM}} دارا خيرا من دار{{H}} وأهلا خيرا من أهل{{H}}. اللهم ارزق{{HM}} من النعيم في قبر{{H}} ما لا عين رأت ولا أذن سمعت ولا خطر على قلب بشر',
+'اللهم اجعل {{R}} في الفردوس الأعلى من الجنة وأجر{{HM}} من خزي الدنيا وعذاب الآخرة. اللهم توف{{HM}} مسلما والحق{{HM}} بالصالحين',
+'اللهم اجعل {{R}} في كفالة إبراهيم عليه السلام. اللهم ثقل به موازيننا وأعظم به أجورنا والحق{{HM}} بصالح المؤمنين',
+'اللهم اش {{R}} في قبر{{H}} شفاء لا يغادر سقما. اللهم امح به خطايانا وارحم تراب{{H}} وفك رهان{{H}}',
+'اللهم لا تحرمنا أجر {{R}} ولا تفتنا بعده. اللهم اغفر لنا و{{PF}} ولإخواننا الذين سبقونا بالإيمان ولا تجعل في قلوبنا غلا للذين آمنوا',
+'إنا لله وإنا إليه راجعون. اللهم {{R}} أمانة عندك وضيف نزل بك فأحسن ضيافت{{H}} وأوسع مدخل{{H}} واجمعنا به في جنات النعيم',
+'اللهم اش {{R}} في قبر{{H}} ونور {{PF}} فيه من الضيء ما يكفيه. اللهم اجمعنا به في الجنة ولا تحرمنا رؤيت{{H}} في دار الكرامة',
+'اللهم ارفع درجة {{R}} في المهديين واخلف{{H}} في عقب{{H}} في الغابرين وافسح {{PF}} في قبر{{H}} ونور {{PF}} فيه',
+'اللهم ارحم {{R}} برحمتك التي وسعت كل شيء. اللهم تجاوز عن سيئات{{H}} واقبل حسنات{{H}} واجعل قبر{{H}} روضة من رياض الجنة',
+'اللهم اغفر {{PF}} وارحم{{HM}} وعف عنه وكفر عنه سيئات{{H}} وأكرم نزل{{H}} ووسع مدخل{{H}} واغسل{{HM}} بالماء والثلج والبرد',
+];
+
+const dEn=[
+'O Allah, forgive {{RE}} and have mercy on {{HM_EN}}. Widen {{H_EN}} resting place, cleanse {{HM_EN}} with water, snow, and cold. Purify {{HM_EN}} from sins. Admit {{HM_EN}} to Paradise.',
+'O Allah, have mercy on {{RE}} with a vast mercy. Make {{H_EN}} grave a garden from the gardens of Paradise.',
+'O Allah, make {{RE}} steadfast at the time of questioning. Comfort {{HM_EN}} and settle {{HM_EN}} in a blessed dwelling.',
+'O Allah, forgive {{RE}} for past and future sins, hidden and open. There is no god but You.',
+'O Allah, make {{H_EN}} grave a light. Widen it and furnish it from the bedding of Paradise.',
+'O Allah, {{RE}} is in Your covenant. Save {{HM_EN}} from the trial of the grave. Forgive {{RE}} and have mercy on {{HM_EN}}.',
+'To Allah we belong. Have mercy on {{RE}}, raise {{H_EN}} rank among the rightly guided.',
+'O Allah, let the Quran intercede for {{HM_EN}}. Admit {{HM_EN}} to Paradise.',
+'O Allah, grant {{RE}} intercession on the Day of Judgment. Secure {{HM_EN}} from terror.',
+'O Allah, protect {{RE}} from the punishment of Hellfire. Admit {{HM_EN}} to Paradise without reckoning.',
+'O Allah, host {{RE}} with a gracious welcome. Grant {{HM_EN}} bliss beyond imagination.',
+'O Allah, place {{RE}} in the Highest Paradise. Save {{HM_EN}} from disgrace.',
+'O Allah, place {{RE}} under the care of Ibrahim. Make our scales heavy through {{HM_EN}}.',
+'O Allah, heal {{RE}} in {{H_EN}} grave. Erase our sins through {{HM_EN}}.',
+'O Allah, do not deprive us of the reward of {{RE}}. Forgive us and {{RE}}.',
+'{{RE}} is a trust with You. Welcome {{HM_EN}} generously and gather us in Paradise.',
+'O Allah, forgive {{RE}} and illuminate {{H_EN}} grave. Gather us with {{HM_EN}} in Paradise.',
+'O Allah, raise the rank of {{RE}}. Widen {{H_EN}} grave and fill it with light.',
+'O Allah, have mercy on {{RE}}. Overlook {{H_EN}} bad deeds and accept the good.',
+'O Allah, forgive {{RE}} and have mercy on {{HM_EN}}. Cleanse {{HM_EN}} with water, snow, and cold.',
+];
+
+function fill(text,r){
+  const m=r.gender==='m',reEn=lang==='en'?rels[r.idx].cf:'';
+  return text.replace(/\{\{R\}\}/g,r.call).replace(/\{\{PF\}\}/g,'ل'+r.call)
+    .replace(/\{\{H\}\}/g,m?'ه':'ها').replace(/\{\{HM\}\}/g,m?'ه':'ها')
+    .replace(/\{\{KN\}\}/g,m?'كان':'كانت').replace(/\{\{RE\}\}/g,reEn||r.call)
+    .replace(/\{\{HM_EN\}\}/g,m?'him':'them').replace(/\{\{H_EN\}\}/g,m?'his':'their')
+    .replace(/\{\{HE_HAS\}\}/g,m?'he has':'they have');
+}
+function getRel(){const v=document.getElementById('rel').value.split('|');return{gender:v[0],call:v[1],idx:document.getElementById('rel').selectedIndex}}
+
+function setLang(l){
+  lang=l;document.documentElement.dir=l==='ar'?'rtl':'ltr';document.documentElement.lang=l;
+  document.getElementById('btnAr').classList.toggle('on',l==='ar');
+  document.getElementById('btnEn').classList.toggle('on',l==='en');
+  document.getElementById('h_title').textContent=l==='ar'?'نَفَحَاتُ الرَّحْمَةِ':'Nafahat Al-Rahma';
+  document.getElementById('h_sub').textContent=l==='ar'?'الصَّدَقَةُ الجَارِيَةُ عَلَى أَرْوَاحِ الْمُسْلِمِينَ':'Ongoing Charity for the Souls of Muslims';
+  document.getElementById('h_bism').textContent=l==='ar'?'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ':'In the Name of Allah, the Most Gracious, the Most Merciful';
+  document.getElementById('h_foot').textContent=l==='ar'?'نفحات الرحمة — الصدقة الجارية على أرواح المسلمين ✨':'Nafahat Al-Rahma — Ongoing Charity ✨';
+  document.getElementById('lbl_rel').textContent=l==='ar'?'🔗 صلة القرابة':'🔗 Kinship';
+  document.getElementById('lbl_go').textContent=l==='ar'?'🤲 ادعُ الآن':'🤲 Pray Now';
+  document.getElementById('btnAll').textContent=playingAll?(l==='ar'?'⏹ توقف':'⏹ Stop'):(l==='ar'?'🔊 اقرأ الكل':'🔊 Read All');
+  document.getElementById('lbl_soul').textContent=l==='ar'?'الصدقة الجارية على':'Ongoing charity for';
+  document.getElementById('vM').textContent=l==='ar'?'♂ رجل':'♂ Male';
+  document.getElementById('vF').textContent=l==='ar'?'♀ أنثى':'♀ Female';
+  document.getElementById('dlTitle').textContent=l==='ar'?'⬇ تحميل الدعاء':'⬇ Download Dua';
+  updSel();if(document.getElementById('out').classList.contains('show'))go();
+}
+function updSel(){const s=document.getElementById('rel');for(let i=0;i<s.options.length;i++)if(rels[i])s.options[i].text=lang==='ar'?'اللهم اغفر ل'+rels[i].ar:rels[i].en}
+function buildSel(){const s=document.getElementById('rel');s.innerHTML='';rels.forEach(r=>{const o=document.createElement('option');o.value=r.v;o.text='اللهم اغفر ل'+r.ar;s.appendChild(o)})}
+function toggleVoice(){voiceIsMale=!voiceIsMale;document.getElementById('vtog').classList.toggle('male',voiceIsMale);document.getElementById('vM').classList.toggle('on',voiceIsMale);document.getElementById('vF').classList.toggle('on',!voiceIsMale)}
+function toggleDark(){isDark=!isDark;document.body.classList.toggle('dark',isDark);document.getElementById('btnDark').textContent=isDark?'☀️':'🌙'}
+function onRelChange(){if(document.getElementById('out').classList.contains('show'))go()}
+
+function go(){
+  const r=getRel(),L=document.getElementById('list');L.innerHTML='';
+  const pf='ل'+r.call,ePf=pf.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const eHl=r.call.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const reEn=rels[r.idx].cf,eRe=reEn.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const pL=lang==='ar'?'تشغيل':'Play',dL=lang==='ar'?'تحميل':'Download',shL=lang==='ar'?'مشاركة':'Share';
+  for(let i=0;i<20;i++){
+    let dA=fill(dAr[i],r).replace(new RegExp(ePf,'g'),'<span class="pf">'+pf+'</span>').replace(new RegExp(eHl,'g'),'<span class="hl">'+r.call+'</span>');
+    let dE=fill(dEn[i],r).replace(new RegExp(eRe,'gi'),'<span class="pf">'+reEn+'</span>');
+    const title=lang==='ar'?tAr[i]:tEn[i];
+    L.innerHTML+=`<div class="dua" id="d${i}">
+      <div class="dua-head"><span class="dua-title">${title}</span>
+        <div class="dua-acts">
+          <button class="dbtn dbtn-play" id="pb${i}" onclick="event.stopPropagation();toggleDua(${i})" title="${pL}">▶</button>
+          <button class="dbtn dbtn-dl" onclick="event.stopPropagation();openDl(${i})" title="${dL}">⬇</button>
+          <button class="dbtn dbtn-sh" onclick="event.stopPropagation();shareDua(${i})" title="${shL}">📤</button>
+          <span class="dua-num">${i+1}</span>
+        </div>
+      </div>
+      <div class="dua-body">${dA}<div class="en-line"><span class="ltag">EN</span> ${dE}</div></div>
+      <div class="dua-foot"><span>${sAr[i]}</span></div>
+      <div class="dua-prog"><div class="bar" id="bar${i}"></div></div>
+    </div>`;
+  }
+  document.getElementById('rlabel').textContent=lang==='ar'?r.call:rels[r.idx].cf;
+  document.getElementById('out').classList.add('show');stopAll();
+}
+
+// ===== TTS =====
+function speak(text,langCode,pitchVal,cb){
+  if(!window.speechSynthesis){cb();return}
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);
+  u.lang=langCode;u.rate=0.82;u.pitch=pitchVal;
+  const all=speechSynthesis.getVoices();let v=null;
+  if(langCode.startsWith('ar'))v=all.find(x=>x.lang.startsWith('ar-SA'))||all.find(x=>x.lang.startsWith('ar-EG'))||all.find(x=>x.lang.startsWith('ar'));
+  else{if(voiceIsMale)v=all.find(x=>x.lang.startsWith('en')&&/male|daniel|alex|david|james/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'));
+  else v=all.find(x=>x.lang.startsWith('en')&&/female|samantha|victoria|karen|zira|moira/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'))}
+  if(v)u.voice=v;let done=false;const fin=()=>{if(!done){done=true;cb()}};u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);setTimeout(fin,25000);
+}
+function buildTxt(r,i,l){const m=r.gender==='m',body=l==='ar'?fill(dAr[i],r):fill(dEn[i],r);if(l==='ar')return'اللهم اغفر '+r.call+' وارحم'+(m?'ه':'ها')+'. '+body;return'O Allah, forgive '+rels[r.idx].cf+' and have mercy on '+(m?'him':'them')+'. '+body}
+
+function playDua(i){
+  stopAll();playingIdx=i;const card=document.getElementById('d'+i);
+  card.classList.add('playing');document.getElementById('pb'+i).textContent='⏸';document.getElementById('pb'+i).classList.add('on');
+  card.scrollIntoView({behavior:'smooth',block:'nearest'});showStop(true);
+  const bar=document.getElementById('bar'+i);
+  const arT=buildTxt(getRel(),i,'ar'),enT=buildTxt(getRel(),i,'en');
+  const arP=voiceIsMale?0.5:1.15,enP=voiceIsMale?0.65:1.25;
+  let prog=0;timerHandle=setInterval(()=>{if(prog<48){prog+=0.6;bar.style.width=prog+'%'}},100);
+  speak(arT,'ar-SA',arP,()=>{bar.style.width='50%';speak(enT,'en-US',enP,()=>{bar.style.width='100%';setTimeout(()=>finishDua(i),300)})});
+}
+function finishDua(i){
+  clearInterval(timerHandle);timerHandle=null;
+  const c=document.getElementById('d'+i);if(c){c.classList.remove('playing');document.getElementById('bar'+i).style.width='0'}
+  const pb=document.getElementById('pb'+i);if(pb){pb.textContent='▶';pb.classList.remove('on')}
+  playingIdx=-1;showStop(false);
+  if(playingAll){qi++;if(qi<20)playDua(qi);else{playingAll=false;updAllBtn()}}
+}
+function toggleDua(i){if(playingIdx===i){stopAll();return}playDua(i)}
+function playAll(){if(playingAll){stopAll();return}if(!document.getElementById('out').classList.contains('show'))go();playingAll=true;qi=0;updAllBtn();playDua(0)}
+function stopAll(){
+  if(speechSynthesis)speechSynthesis.cancel();if(timerHandle){clearInterval(timerHandle);timerHandle=null}
+  playingAll=false;if(playingIdx>=0){const c=document.getElementById('d'+playingIdx);if(c){c.classList.remove('playing');document.getElementById('bar'+playingIdx).style.width='0'}const pb=document.getElementById('pb'+playingIdx);if(pb){pb.textContent='▶';pb.classList.remove('on')}}
+  playingIdx=-1;showStop(false);updAllBtn();
+}
+function showStop(s){document.getElementById('btnStop').style.display=s?'block':'none'}
+function updAllBtn(){const b=document.getElementById('btnAll');b.classList.remove('on');b.textContent=lang==='ar'?'🔊 اقرأ الكل':'🔊 Read All'}
+
+// ===== DOWNLOAD MODAL =====
+function openDl(i){dlIdx=i;document.getElementById('dlModal').classList.add('show');document.getElementById('dlOpts').style.display='flex';document.getElementById('dlLoading').style.display='none'}
+function closeModal(){document.getElementById('dlModal').classList.remove('show');dlIdx=-1}
+
+// ===== SHARE =====
+let shareTextCache='';
+async function shareDua(i){
+  const r=getRel(),m=r.gender==='m';
+  const arBody=fill(dAr[i],r);
+  const enBody=fill(dEn[i],r);
+  const title=tAr[i];
+  const call=r.call,callEn=rels[r.idx].cf;
+  const prefix='🤲 اللهم اغفر '+call+' وارحم'+(m?'ه':'ها');
+  const text=prefix+'\n\n'+arBody+'\n\n── '+title+' ──\n\n🇬🇧 O Allah, forgive '+callEn+' and have mercy on '+(m?'him':'them')+'. '+enBody+'\n\n✨ نفحات الرحمة — الصدقة الجارية';
+  const pageUrl='https://galalemad75-creator.github.io/alsadaqa-aljaria/';
+  shareTextCache=text;
+
+  // Try native share first (mobile)
+  if(navigator.share){
+    try{await navigator.share({title:title,text:text,url:pageUrl});return}catch(e){if(e.name==='AbortError')return}
+  }
+
+  // Open social media share modal
+  const encoded=encodeURIComponent(text);
+  const urlEncoded=encodeURIComponent(pageUrl);
+  document.getElementById('shWhatsApp').href='https://wa.me/?text='+encoded;
+  document.getElementById('shTelegram').href='https://t.me/share/url?url='+urlEncoded+'&text='+encoded;
+  document.getElementById('shTwitter').href='https://twitter.com/intent/tweet?text='+encoded+'&url='+urlEncoded;
+  document.getElementById('shFacebook').href='https://www.facebook.com/sharer/sharer.php?u='+urlEncoded+'&quote='+encoded;
+  document.getElementById('shSMS').href='sms:?body='+encoded;
+  document.getElementById('shTitle').textContent=lang==='ar'?'📤 مشاركة الدعاء':'📤 Share Dua';
+  document.getElementById('shModal').classList.add('show');
+}
+function closeShModal(){document.getElementById('shModal').classList.remove('show')}
+async function copyShareText(){
+  try{
+    await navigator.clipboard.writeText(shareTextCache);
+    const btn=document.getElementById('shCopy');
+    btn.textContent=lang==='ar'?'✅ تم النسخ!':'✅ Copied!';
+    setTimeout(()=>{btn.textContent=lang==='ar'?'📋 نسخ النص':'📋 Copy'},2000);
+  }catch(e){
+    // Fallback for older browsers
+    const ta=document.createElement('textarea');ta.value=shareTextCache;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    const btn=document.getElementById('shCopy');
+    btn.textContent=lang==='ar'?'✅ تم النسخ!':'✅ Copied!';
+    setTimeout(()=>{btn.textContent=lang==='ar'?'📋 نسخ النص':'📋 Copy'},2000);
+  }
+}
+
+async function doDownload(type){
+  const i=dlIdx;if(i<0)return;
+  document.getElementById('dlOpts').style.display='none';
+  document.getElementById('dlLoading').style.display='block';
+  const r=getRel();
+  const statusEl=document.getElementById('dlStatus');
+
+  if(type==='text'||type==='both'){
+    statusEl.textContent=lang==='ar'?'جاري إنشاء البطاقة...':'Creating card...';
+    await genTextCard(i,r);
+  }
+  if(type==='audio'||type==='both'){
+    statusEl.textContent=lang==='ar'?'جاري تسجيل الصوت...':'Recording audio...';
+    await genAudio(i,r);
+  }
+  statusEl.textContent=lang==='ar'?'✅ تم التحميل!':'✅ Downloaded!';
+  setTimeout(closeModal,1200);
+}
+
+// ===== GENERATE BEAUTIFUL TEXT CARD (HTML) =====
+function genTextCard(i,r){
+  return new Promise(resolve=>{
+    const m=r.gender==='m';
+    const arBody=fill(dAr[i],r);
+    const enBody=fill(dEn[i],r);
+    const title=tAr[i];
+    const titleEn=tEn[i];
+    const src=sAr[i];
+    const call=r.call;
+    const callEn=rels[r.idx].cf;
+    const prefix='اللهم اغفر '+call+' وارحم'+(m?'ه':'ها');
+
+    // Build HTML card
+    const esc=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const arHighlighted=arBody.replace(new RegExp(esc(call),'g'),'<span class="hl">'+call+'</span>');
+    const enHighlighted=enBody.replace(new RegExp(esc(callEn),'gi'),'<span class="call-en">'+callEn+'</span>');
+
+    const html=String.raw`<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>`+title+` - `+prefix+String.raw`</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px;background:linear-gradient(135deg,#0b3d2e,#0d5c4a,#0a4a3a);font-family:'Amiri','Scheherazade New',serif}
+.card{max-width:500px;width:100%;background:linear-gradient(145deg,#fdfaf3,#f5eed8);border-radius:24px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.4);border:3px solid #c9a84c;position:relative}
+.card::before{content:'';position:absolute;inset:8px;border:1.5px solid rgba(201,168,76,.3);border-radius:18px;pointer-events:none}
+.hdr{background:linear-gradient(135deg,#0b3d2e,#0d5c4a);padding:30px 20px;text-align:center;position:relative;overflow:hidden}
+.hdr::after{content:'﷽';position:absolute;font-size:120px;color:rgba(201,168,76,.08);top:50%;left:50%;transform:translate(-50%,-50%)}
+.hdr h1{font-family:'Scheherazade New','Amiri',serif;font-size:28px;color:#e8c95a;text-shadow:0 2px 10px rgba(0,0,0,.3);position:relative}
+.hdr p{font-size:13px;color:#a8d5ba;margin-top:6px;position:relative}
+.bism{text-align:center;padding:15px;font-family:'Scheherazade New',serif;font-size:22px;color:#0b3d2e;border-bottom:2px solid rgba(201,168,76,.3);background:rgba(201,168,76,.06)}
+.bdy{padding:24px 20px;text-align:center}
+.pfx{font-family:'Scheherazade New',serif;font-size:22px;color:#8B6914;font-weight:700;margin-bottom:16px;background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(201,168,76,.05));padding:12px;border-radius:12px;border:1px solid rgba(201,168,76,.3)}
+.dt{font-family:'Scheherazade New',serif;font-size:19px;line-height:2.6;color:#1a2e25;text-align:justify;margin-bottom:20px}
+.dt .hl{color:#0b3d2e;font-weight:700;text-decoration:underline;text-decoration-color:#c9a84c;text-underline-offset:5px}
+.dv{text-align:center;color:#c9a84c;font-size:14px;letter-spacing:8px;margin:16px 0}
+.et{font-family:'Inter',sans-serif;font-size:13px;line-height:2;color:#555;text-align:left;direction:ltr;border-top:1px dashed #ddd0a8;padding-top:14px;margin-top:10px}
+.et .ce{color:#2a6b9f;font-weight:600}
+.src{text-align:center;padding:10px;font-size:11px;color:#999;font-style:italic}
+.orn{text-align:center;padding:8px;font-size:16px;color:#c9a84c;letter-spacing:4px}
+.ftr{text-align:center;padding:16px;background:linear-gradient(135deg,#0b3d2e,#0d5c4a);color:#a8d5ba;font-size:10px}
+.ftr b{color:#c9a84c;font-size:12px}
+</style></head><body>
+<div class="card">
+<div class="hdr"><h1>نَفَحَاتُ الرَّحْمَةِ</h1><p>الصَّدَقَةُ الجَارِيَةُ عَلَى أَرْوَاحِ الْمُسْلِمِينَ</p></div>
+<div class="bism">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>
+<div class="orn">◆ ❖ ◆ ❖ ◆</div>
+<div class="bdy">
+<div class="pfx">🤲 `+prefix+`</div>
+<div class="dt">`+arHighlighted+`</div>
+<div class="dv">◆ ◇ ◆</div>
+<div class="et"><span class="ce">O Allah, forgive `+callEn+` and have mercy on `+(m?'him':'them')+`.</span> `+enHighlighted+`</div>
+<div class="src">— `+title+` —</div>
+</div>
+<div class="orn">◆ ❖ ◆ ❖ ◆</div>
+<div class="src">`+src+`</div>
+<div class="ftr"><b>نَفَحَاتُ الرَّحْمَةِ</b><br>الصدقة الجارية على أرواح المسلمين</div>
+</div></body></html>`;
+
+    const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='dua_'+(i+1)+'_'+call.replace(/\s/g,'_')+'.html';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    resolve();
+  });
+}
+
+// ===== GENERATE AUDIO =====
+function genAudio(i,r){
+  return new Promise(async resolve=>{
+    const gender=voiceIsMale?'m':'f';
+    const mp3Url=CDN+'/'+gender+'/'+i+'.mp3';
+    const enBody=fill(dEn[i],r);
+    const callEn=rels[r.idx].cf;
+    const m=r.gender==='m';
+    const enFull='O Allah, forgive '+callEn+' and have mercy on '+(m?'him':'them')+'. '+enBody;
+
+    // Download Arabic MP3 from CDN
+    try{
+      const resp=await fetch(mp3Url);
+      if(resp.ok){
+        const blob=await resp.blob();
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;
+        a.download='dua_'+(i+1)+'_ar_'+gender+'.mp3';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    }catch(e){console.warn('MP3 fetch failed:',e)}
+
+    // Also download English text as companion file
+    const enBlob=new Blob(['[English Translation]\n\n'+enFull],{type:'text/plain;charset=utf-8'});
+    const enUrl=URL.createObjectURL(enBlob);
+    const enA=document.createElement('a');
+    enA.href=enUrl;
+    enA.download='dua_'+(i+1)+'_en.txt';
+    document.body.appendChild(enA);enA.click();document.body.removeChild(enA);
+    URL.revokeObjectURL(enUrl);
+    resolve();
+  });
+}
+
+// ===== INIT =====
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();speechSynthesis.getVoices();setTimeout(()=>speechSynthesis.getVoices(),500);setTimeout(()=>speechSynthesis.getVoices(),1500)}
+buildSel();
+</script>
+</body>
+</html>
