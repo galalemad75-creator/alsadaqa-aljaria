@@ -520,7 +520,9 @@ body{min-height:100vh;display:flex;justify-content:center;align-items:center;pad
 <div class="orn">◆ ❖ ◆ ❖ ◆</div>
 <div class="src">`+src+`</div>
 <div class="ftr"><b>نَفَحَاتُ الرَّحْمَةِ</b><br>الصدقة الجارية على أرواح المسلمين</div>
-</div></body></html>`;
+</div><script src="config.js"></script>
+<script src="supabase-sync.js"></script>
+</body></html>`;
 
     const blob=new Blob([html],{type:'text/html;charset=utf-8'});
     const url=URL.createObjectURL(blob);
@@ -573,5 +575,7 @@ function genAudio(i,r){
 if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();speechSynthesis.getVoices();setTimeout(()=>speechSynthesis.getVoices(),500);setTimeout(()=>speechSynthesis.getVoices(),1500)}
 buildSel();
 </script>
+<script src="config.js"></script>
+<script src="supabase-sync.js"></script>
 </body>
 </html>
