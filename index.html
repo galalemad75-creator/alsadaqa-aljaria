@@ -131,7 +131,7 @@ body.dark .dl-status{color:var(--gold)}
     <button class="btn btn-all" id="btnAll" onclick="playAll()">🔊 اقرأ الكل</button>
   </div>
   <div class="btns" style="margin-top:8px">
-    <button class="btn btn-stop" id="btnStop" onclick="stopAll()" style="display:none">⏹ توقف</button>
+    <button class="btn btn-stop" id="btnStop" onclick="stopAll()" style="visibility:hidden;opacity:0;transition:opacity .3s">⏹ توقف</button>
   </div>
 </div>
 
@@ -373,67 +373,69 @@ function go(){
 }
 
 // ===== TTS with Arabic support =====
+// ===== AUDIO ENGINE: Google Translate TTS - natural human voice =====
+let currentAudio = null;
+
 function speak(text, langCode, pitchVal, cb){
   let done=false;
   const fin=()=>{if(!done){done=true;cb();}};
-  if(!window.speechSynthesis){gttsPlay(text,langCode,fin);return;}
-  speechSynthesis.cancel();
-  const all=speechSynthesis.getVoices();
-  let v=null;
-  if(langCode.startsWith('ar')){
-    const arVoices=all.filter(x=>x.lang&&x.lang.startsWith('ar'));
-    if(arVoices.length>0){
-      if(voiceIsMale){
-        v=arVoices.find(x=>/male|majd|daniel|ahmad|omar|hadi|khaled|tarik/i.test(x.name))||arVoices[0];
-        pitchVal=0.3;
-      } else {
-        v=arVoices.find(x=>/female|laila|fatima|amira|salma|zeina|hana|nadia/i.test(x.name))||arVoices[0];
-        pitchVal=1.4;
-      }
-      const u=new SpeechSynthesisUtterance(text);
-      u.lang=langCode;u.rate=0.82;u.pitch=pitchVal;u.voice=v;u.volume=1;
-      let doneUtter=false;const finU=()=>{if(!doneUtter){doneUtter=true;fin();}};
-      u.onend=finU;u.onerror=()=>gttsPlay(text,langCode,fin);
-      speechSynthesis.speak(u);
-      setTimeout(finU,25000);
-    } else {
-      // No Arabic voices - use Google Translate TTS
-      gttsPlay(text,langCode,fin);
-    }
-  } else {
-    // English voice
-    if(voiceIsMale){
-      v=all.find(x=>x.lang.startsWith('en')&&/male|daniel|alex|david|james|mark|guy/i.test(x.name))||all.find(x=>x.lang.startsWith('en'));
-      pitchVal=0.5;
-    } else {
-      v=all.find(x=>x.lang.startsWith('en')&&/female|samantha|victoria|karen|zira|moira|sarah/i.test(x.name))||all.find(x=>x.lang.startsWith('en'));
-      pitchVal=1.3;
-    }
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang=langCode;u.rate=0.82;u.pitch=pitchVal;u.volume=1;
-    if(v)u.voice=v;
-    let doneUtter=false;const finU=()=>{if(!doneUtter){doneUtter=true;fin();}};
-    u.onend=finU;u.onerror=finU;
-    speechSynthesis.speak(u);
-    setTimeout(finU,25000);
+  const tl=langCode.startsWith('ar')?'ar':'en';
+  const chunks=splitText(text,190);
+  playChunks(chunks,tl,0,fin);
+}
+
+function splitText(text,maxLen){
+  if(text.length<=maxLen)return[text];
+  const chunks=[];
+  let rem=text;
+  while(rem.length>maxLen){
+    let cut=rem.lastIndexOf('. ',maxLen);
+    if(cut<40)cut=rem.lastIndexOf(' ',maxLen);
+    if(cut<40)cut=maxLen;
+    chunks.push(rem.substring(0,cut+1).trim());
+    rem=rem.substring(cut+1).trim();
+  }
+  if(rem)chunks.push(rem);
+  return chunks;
+}
+
+function playChunks(chunks,tl,idx,fin){
+  if(idx>=chunks.length){fin();return;}
+  // If playback was stopped externally, abort
+  if(playingIdx<0&&!playingAll&&idx>0){fin();return;}
+  stopCurrentAudio();
+  const text=chunks[idx];
+  const url='https://translate.google.com/translate_tts?ie=UTF-8&tl='+tl
+    +'&q='+encodeURIComponent(text)+'&client=tw-ob&ttsspeed=0.85';
+  const a=document.createElement('audio');
+  a.setAttribute('playsinline','');
+  currentAudio=a;
+  let moved=false;
+  const next=()=>{
+    if(moved)return; moved=true;
+    try{a.pause();a.src='';a.remove();}catch(e){}
+    if(currentAudio===a)currentAudio=null;
+    playChunks(chunks,tl,idx+1,fin);
+  };
+  a.onended=next;
+  a.onerror=()=>{
+    // On error still call fin so playback chain continues
+    if(!moved){moved=true;try{a.remove();}catch(e){}if(currentAudio===a)currentAudio=null;fin();}
+  };
+  a.src=url;
+  document.body.appendChild(a);
+  const p=a.play();
+  if(p){p.catch(()=>{if(!moved)next();});}
+  setTimeout(()=>{if(!moved)next();},20000);
+}
+
+function stopCurrentAudio(){
+  if(currentAudio){
+    try{currentAudio.pause();currentAudio.currentTime=0;currentAudio.src='';currentAudio.remove();}catch(e){}
+    currentAudio=null;
   }
 }
 
-function gttsPlay(text,langCode,cb){
-  let done=false;const fin=()=>{if(!done){done=true;cb();}};
-  const tl=langCode.startsWith('ar')?'ar':'en';
-  const shortText=text.length>180?text.substring(0,180):text;
-  const url='https://translate.google.com/translate_tts?ie=UTF-8&tl='+tl+'&q='+encodeURIComponent(shortText)+'&client=tw-ob';
-  try{
-    const a=document.createElement('audio');
-    a.src=url;a.preload='auto';a.setAttribute('playsinline','');
-    a.onended=fin;a.onerror=fin;
-    document.body.appendChild(a);
-    const p=a.play();
-    if(p){p.then(()=>{}).catch(()=>{try{a.remove()}catch(x){}fin();})}
-    setTimeout(()=>{try{a.remove()}catch(e){}fin();},22000);
-  }catch(e){fin();}
-}
 
 function buildTxt(r,i,l){
   const m=r.gender==='m';
@@ -486,7 +488,9 @@ function playAll(){
   playingAll=true;qi=0;updAllBtn();playDua(0);
 }
 function stopAll(){
-  if(speechSynthesis){try{speechSynthesis.cancel();}catch(e){}}
+  // Stop audio immediately
+  stopCurrentAudio();
+  try{if(window.speechSynthesis)speechSynthesis.cancel();}catch(e){}
   if(timerHandle){clearInterval(timerHandle);timerHandle=null;}
   playingAll=false;
   if(playingIdx>=0){
@@ -495,12 +499,24 @@ function stopAll(){
     const pb=document.getElementById('pb'+playingIdx);
     if(pb){pb.textContent='▶';pb.classList.remove('on');}
   }
-  playingIdx=-1;showStop(false);updAllBtn();
+  playingIdx=-1;
+  showStop(false);
+  updAllBtn();
 }
-function showStop(s){document.getElementById('btnStop').style.display=s?'block':'none';}
+function showStop(s){
+  const btn=document.getElementById('btnStop');
+  if(s){btn.style.visibility='visible';btn.style.opacity='1';}
+  else{btn.style.visibility='hidden';btn.style.opacity='0';}
+}
 function updAllBtn(){
   const b=document.getElementById('btnAll');
-  b.textContent=lang==='ar'?'🔊 اقرأ الكل':'🔊 Read All';
+  if(playingAll){
+    b.textContent=lang==='ar'?'⏸ جارٍ القراءة...':'⏸ Reading...';
+    b.style.background='linear-gradient(135deg,#8B6914,var(--gold))';
+  } else {
+    b.textContent=lang==='ar'?'🔊 اقرأ الكل':'🔊 Read All';
+    b.style.background='linear-gradient(135deg,#8B6914,var(--gold))';
+  }
 }
 
 // ===== DOWNLOAD MODAL =====
