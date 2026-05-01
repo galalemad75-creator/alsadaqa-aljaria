@@ -376,49 +376,48 @@ function go(){
 // ===== TTS =====
 function speak(text,langCode,pitchVal,cb){
   let done=false;const fin=()=>{if(!done){done=true;cb()}};
-  // Try browser TTS first
-  if(window.speechSynthesis){
-    speechSynthesis.cancel();
-    const all=speechSynthesis.getVoices();
-    let v=null;
-    if(langCode.startsWith('ar')){
-      const arVoices=all.filter(x=>x.lang.startsWith('ar'));
-      if(voiceIsMale)v=arVoices.find(x=>/male|majd|ahmad|omar|hadi/i.test(x.name))||arVoices[0]||null;
-      else v=arVoices.find(x=>/female|laila|fatima|amira/i.test(x.name))||arVoices[0]||null;
-    }else{
-      if(voiceIsMale)v=all.find(x=>x.lang.startsWith('en')&&/male|daniel|alex|david|james/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'))||null;
-      else v=all.find(x=>x.lang.startsWith('en')&&/female|samantha|victoria|karen|zira/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'))||null;
-    }
-    if(v){
-      const u=new SpeechSynthesisUtterance(text);
-      u.lang=langCode;u.rate=0.82;u.pitch=pitchVal;u.voice=v;
-      u.onend=fin;u.onerror=function(){gttsFallback(text,langCode,fin)};
-      speechSynthesis.speak(u);setTimeout(fin,15000);
-      return;
-    }
+  if(!window.speechSynthesis||!window.speechSynthesis.speak){gttsPlay(text,langCode,fin);return}
+  speechSynthesis.cancel();
+  const all=speechSynthesis.getVoices();
+  let v=null;
+  if(langCode.startsWith('ar')){
+    const ar=all.filter(x=>x.lang.startsWith('ar'));
+    if(voiceIsMale)v=ar.find(x=>/male|majd|ahmad|omar|hadi/i.test(x.name))||ar[0]||null;
+    else v=ar.find(x=>/female|laila|fatima|amira|zeina/i.test(x.name))||ar[0]||null;
+  }else{
+    if(voiceIsMale)v=all.find(x=>x.lang.startsWith('en')&&/male|daniel|alex|david/i.test(x.name))||all.find(x=>x.lang.startsWith('en'))||null;
+    else v=all.find(x=>x.lang.startsWith('en')&&/female|samantha|victoria|karen/i.test(x.name))||all.find(x=>x.lang.startsWith('en'))||null;
   }
-  // No browser voice, use Google TTS fallback
-  gttsFallback(text,langCode,fin);
+  if(v){
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=langCode;u.rate=0.82;u.pitch=pitchVal;u.voice=v;
+    u.onend=fin;u.onerror=function(){gttsPlay(text,langCode,fin)};
+    setTimeout(()=>{try{speechSynthesis.speak(u)}catch(e){gttsPlay(text,langCode,fin)}},100);
+    setTimeout(fin,20000);
+  }else{
+    gttsPlay(text,langCode,fin);
+  }
 }
-function gttsFallback(text,langCode,cb){
+function gttsPlay(text,langCode,cb){
   let done=false;const fin=()=>{if(!done){done=true;cb()}};
   const tl=langCode.startsWith('ar')?'ar':'en';
-  const shortText=text.length>180?text.substring(0,180):text;
+  const shortText=text.length>150?text.substring(0,150):text;
   const url="https://translate.google.com/translate_tts?ie=UTF-8&tl="+tl+"&q="+encodeURIComponent(shortText)+"&client=tw-ob";
   try{
-    const a=new Audio(url);
-    a.playbackRate=0.85;
+    const a=document.createElement('audio');
+    a.src=url;a.preload='auto';a.setAttribute('playsinline','');
     a.onended=fin;
-    a.onerror=function(){fin()};
+    a.onerror=function(e){fin()};
+    document.body.appendChild(a);
     const p=a.play();
-    if(p)p.catch(function(){fin()});
-    setTimeout(fin,20000);
+    if(p){p.then(function(){}).catch(function(e){try{a.remove()}catch(x){}fin()})}
+    setTimeout(function(){try{a.remove()}catch(e){}fin()},20000);
   }catch(e){fin()}
 }
 function buildTxt(r,i,l){const m=r.gender==='m',body=l==='ar'?fill(dAr[i],r):fill(dEn[i],r);if(l==='ar')return'اللهم اغفر '+r.call+' وارحم'+(m?'ه':'ها')+'. '+body;return'O Allah, forgive '+rels[r.idx].cf+' and have mercy on '+(m?'him':'them')+'. '+body}
 
 function playDua(i){
-  stopAll();playingIdx=i;const card=document.getElementById('d'+i);
+  const keepAll=playingAll;stopAll();playingAll=keepAll;playingIdx=i;const card=document.getElementById('d'+i);
   card.classList.add('playing');document.getElementById('pb'+i).textContent='⏸';document.getElementById('pb'+i).classList.add('on');
   card.scrollIntoView({behavior:'smooth',block:'nearest'});showStop(true);
   const bar=document.getElementById('bar'+i);
@@ -534,42 +533,34 @@ function genTextCard(i,r){
     function drawCard(templateLoaded){
       if(templateLoaded){
         ctx.drawImage(templateImg,0,0,W,H);
-        ctx.fillStyle='rgba(253,250,243,0.82)';
-        ctx.fillRect(60,200,W-120,H-400);
       }else{
         const grad=ctx.createLinearGradient(0,0,W,H);
         grad.addColorStop(0,'#fdfaf3');grad.addColorStop(1,'#f5eed8');
         ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
       }
-      ctx.strokeStyle='#c9a84c';ctx.lineWidth=4;
-      ctx.strokeRect(70,210,W-140,H-420);
-      ctx.fillStyle='#0b3d2e';ctx.fillRect(70,210,W-140,100);
-      ctx.fillStyle='#e8c95a';ctx.font='bold 36px Amiri,serif';ctx.textAlign='center';
-      ctx.fillText('نَفَحَاتُ الرَّحْمَةِ',W/2,280);
-      ctx.fillStyle='#a8d5ba';ctx.font='18px Amiri,serif';
-      ctx.fillText('الصَّدَقَةُ الجَارِيَةُ عَلَى أَرْوَاحِ الْمُسْلِمِينَ',W/2,310);
-      ctx.fillStyle='#0b3d2e';ctx.font='bold 30px Amiri,serif';
-      ctx.fillText('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',W/2,380);
-      ctx.fillStyle='#c9a84c';ctx.font='20px serif';
-      ctx.fillText('◆ ❖ ◆ ❖ ◆',W/2,420);
+      ctx.shadowColor='rgba(0,0,0,0.3)';ctx.shadowBlur=4;ctx.shadowOffsetX=2;ctx.shadowOffsetY=2;
+      ctx.fillStyle='#0b3d2e';ctx.font='bold 34px Amiri,serif';ctx.textAlign='center';
+      ctx.fillText('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',W/2,300);
       ctx.fillStyle='#8B6914';ctx.font='bold 32px Amiri,serif';
-      ctx.fillText(prefix,W/2,480);
-      ctx.fillStyle='#1a2e25';ctx.font='26px Amiri,serif';
-      const lines=wrapText(ctx,arBody,W-160);let y=540;
-      lines.forEach(line=>{ctx.fillText(line,W/2,y);y+=48;});
+      ctx.fillText(prefix,W/2,380);
+      ctx.fillStyle='#1a2e25';ctx.font='28px Amiri,serif';
+      const lines=wrapText(ctx,arBody,W-200);let y=450;
+      lines.forEach(line=>{ctx.fillText(line,W/2,y);y+=52;});
       y+=20;ctx.fillStyle='#c9a84c';ctx.font='16px serif';
       ctx.fillText('◆ ◇ ◆',W/2,y);y+=40;
-      ctx.fillStyle='#555';ctx.font='18px Inter,sans-serif';ctx.textAlign='left';ctx.direction='ltr';
+      ctx.shadowColor='rgba(0,0,0,0.2)';ctx.shadowBlur=2;
+      ctx.fillStyle='#333';ctx.font='18px Inter,sans-serif';ctx.textAlign='left';
       const enPrefix='O Allah, forgive '+callEn+' and have mercy on '+(m?'him':'them')+'. ';
-      const enLines=wrapText(ctx,enPrefix+enBody,W-160);
-      enLines.forEach(line=>{ctx.fillText(line,80,y);y+=32;});
-      y+=20;ctx.textAlign='center';ctx.fillStyle='#999';ctx.font='italic 16px Amiri,serif';
+      const enLines=wrapText(ctx,enPrefix+enBody,W-200);
+      enLines.forEach(line=>{ctx.fillText(line,100,y);y+=32;});
+      y+=20;ctx.textAlign='center';ctx.fillStyle='#666';ctx.font='italic 16px Amiri,serif';
       ctx.fillText('— '+title+' —',W/2,y);y+=30;ctx.fillText(src,W/2,y);
-      ctx.fillStyle='#0b3d2e';ctx.fillRect(70,H-390,W-140,80);
+      ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;
+      ctx.fillStyle='#0b3d2e';ctx.fillRect(70,H-180,W-140,80);
       ctx.fillStyle='#c9a84c';ctx.font='bold 22px Amiri,serif';
-      ctx.fillText('نَفَحَاتُ الرَّحْمَةِ',W/2,H-355);
+      ctx.fillText('نَفَحَاتُ الرَّحْمَةِ',W/2,H-145);
       ctx.fillStyle='#a8d5ba';ctx.font='14px Amiri,serif';
-      ctx.fillText('الصدقة الجارية على أرواح المسلمين',W/2,H-330);
+      ctx.fillText('الصدقة الجارية على أرواح المسلمين',W/2,H-120);
       canvas.toBlob(blob=>{
         const url=URL.createObjectURL(blob);
         const a=document.createElement('a');a.href=url;
