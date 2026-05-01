@@ -375,38 +375,33 @@ function go(){
 
 // ===== TTS =====
 function speak(text,langCode,pitchVal,cb){
-  if(!window.speechSynthesis){useGtts(text,langCode,cb);return}
+  if(!window.speechSynthesis){skipAudio(cb);return}
   speechSynthesis.cancel();
   const all=speechSynthesis.getVoices();
   let v=null;
   if(langCode.startsWith('ar')){
     const arVoices=all.filter(x=>x.lang.startsWith('ar'));
-    if(arVoices.length===0){useGtts(text,langCode,cb);return}
-    if(voiceIsMale){v=arVoices.find(x=>/male|majd|ahmad|omar|hadi|khaled|tarik/i.test(x.name))||arVoices.find(x=>x.lang==='ar-SA')||arVoices[0];}
-    else{v=arVoices.find(x=>/female|laila|fatima|amira|salma|hana|nadia|zeina/i.test(x.name))||arVoices.find(x=>x.lang==='ar-XA')||arVoices[0];}
+    if(arVoices.length>0){
+      if(voiceIsMale)v=arVoices.find(x=>/male|majd|ahmad|omar|hadi/i.test(x.name))||arVoices[0];
+      else v=arVoices.find(x=>/female|laila|fatima|amira/i.test(x.name))||arVoices[0];
+    }
   }else{
     if(voiceIsMale)v=all.find(x=>x.lang.startsWith('en')&&/male|daniel|alex|david|james/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'));
-    else v=all.find(x=>x.lang.startsWith('en')&&/female|samantha|victoria|karen|zira|moira/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'));
+    else v=all.find(x=>x.lang.startsWith('en')&&/female|samantha|victoria|karen|zira/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'));
   }
-  if(!v){useGtts(text,langCode,cb);return}
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang=langCode;u.rate=0.82;u.pitch=pitchVal;u.voice=v;
-  let done=false;const fin=()=>{if(!done){done=true;cb()}};
-  u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);setTimeout(fin,15000);
-}
-function useGtts(text,langCode,cb){
-  if(langCode.startsWith('ar')&&typeof playingIdx!=='undefined'&&playingIdx>=0){
-    const gender=voiceIsMale?'m':'f';
-    const mp3Url=CDN+'/'+gender+'/'+playingIdx+'.mp3';
-    const a=new Audio(mp3Url);
+  if(v){
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang=langCode;u.rate=0.82;u.pitch=pitchVal;u.voice=v;
     let done=false;const fin=()=>{if(!done){done=true;cb()}};
-    a.onended=fin;a.onerror=function(){fin()};
-    a.play().catch(function(){fin()});
-    setTimeout(fin,30000);
+    u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);setTimeout(fin,12000);
   }else{
-    let done=false;const fin=()=>{if(!done){done=true;cb()}};
-    setTimeout(fin,1500);
+    skipAudio(cb);
   }
+}
+function skipAudio(cb){
+  const el=document.querySelector('.dua.playing .dua-prog .bar');
+  if(el){el.style.width='100%';setTimeout(()=>{el.style.width='0'},1000)}
+  setTimeout(cb,800);
 }
 function buildTxt(r,i,l){const m=r.gender==='m',body=l==='ar'?fill(dAr[i],r):fill(dEn[i],r);if(l==='ar')return'اللهم اغفر '+r.call+' وارحم'+(m?'ه':'ها')+'. '+body;return'O Allah, forgive '+rels[r.idx].cf+' and have mercy on '+(m?'him':'them')+'. '+body}
 
