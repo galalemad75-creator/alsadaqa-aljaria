@@ -375,33 +375,45 @@ function go(){
 
 // ===== TTS =====
 function speak(text,langCode,pitchVal,cb){
-  if(!window.speechSynthesis){skipAudio(cb);return}
-  speechSynthesis.cancel();
-  const all=speechSynthesis.getVoices();
-  let v=null;
-  if(langCode.startsWith('ar')){
-    const arVoices=all.filter(x=>x.lang.startsWith('ar'));
-    if(arVoices.length>0){
-      if(voiceIsMale)v=arVoices.find(x=>/male|majd|ahmad|omar|hadi/i.test(x.name))||arVoices[0];
-      else v=arVoices.find(x=>/female|laila|fatima|amira/i.test(x.name))||arVoices[0];
+  let done=false;const fin=()=>{if(!done){done=true;cb()}};
+  // Try browser TTS first
+  if(window.speechSynthesis){
+    speechSynthesis.cancel();
+    const all=speechSynthesis.getVoices();
+    let v=null;
+    if(langCode.startsWith('ar')){
+      const arVoices=all.filter(x=>x.lang.startsWith('ar'));
+      if(voiceIsMale)v=arVoices.find(x=>/male|majd|ahmad|omar|hadi/i.test(x.name))||arVoices[0]||null;
+      else v=arVoices.find(x=>/female|laila|fatima|amira/i.test(x.name))||arVoices[0]||null;
+    }else{
+      if(voiceIsMale)v=all.find(x=>x.lang.startsWith('en')&&/male|daniel|alex|david|james/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'))||null;
+      else v=all.find(x=>x.lang.startsWith('en')&&/female|samantha|victoria|karen|zira/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'))||null;
     }
-  }else{
-    if(voiceIsMale)v=all.find(x=>x.lang.startsWith('en')&&/male|daniel|alex|david|james/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'));
-    else v=all.find(x=>x.lang.startsWith('en')&&/female|samantha|victoria|karen|zira/i.test(x.name))||all.find(x=>x.lang.startsWith('en-US'))||all.find(x=>x.lang.startsWith('en'));
+    if(v){
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang=langCode;u.rate=0.82;u.pitch=pitchVal;u.voice=v;
+      u.onend=fin;u.onerror=function(){gttsFallback(text,langCode,fin)};
+      speechSynthesis.speak(u);setTimeout(fin,15000);
+      return;
+    }
   }
-  if(v){
-    const u=new SpeechSynthesisUtterance(text);
-    u.lang=langCode;u.rate=0.82;u.pitch=pitchVal;u.voice=v;
-    let done=false;const fin=()=>{if(!done){done=true;cb()}};
-    u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);setTimeout(fin,12000);
-  }else{
-    skipAudio(cb);
-  }
+  // No browser voice, use Google TTS fallback
+  gttsFallback(text,langCode,fin);
 }
-function skipAudio(cb){
-  const el=document.querySelector('.dua.playing .dua-prog .bar');
-  if(el){el.style.width='100%';setTimeout(()=>{el.style.width='0'},1000)}
-  setTimeout(cb,800);
+function gttsFallback(text,langCode,cb){
+  let done=false;const fin=()=>{if(!done){done=true;cb()}};
+  const tl=langCode.startsWith('ar')?'ar':'en';
+  const shortText=text.length>180?text.substring(0,180):text;
+  const url="https://translate.google.com/translate_tts?ie=UTF-8&tl="+tl+"&q="+encodeURIComponent(shortText)+"&client=tw-ob";
+  try{
+    const a=new Audio(url);
+    a.playbackRate=0.85;
+    a.onended=fin;
+    a.onerror=function(){fin()};
+    const p=a.play();
+    if(p)p.catch(function(){fin()});
+    setTimeout(fin,20000);
+  }catch(e){fin()}
 }
 function buildTxt(r,i,l){const m=r.gender==='m',body=l==='ar'?fill(dAr[i],r):fill(dEn[i],r);if(l==='ar')return'اللهم اغفر '+r.call+' وارحم'+(m?'ه':'ها')+'. '+body;return'O Allah, forgive '+rels[r.idx].cf+' and have mercy on '+(m?'him':'them')+'. '+body}
 
@@ -572,7 +584,7 @@ function genTextCard(i,r){
       const img=new Image();img.crossOrigin='anonymous';
       img.onload=function(){templateImg=img;drawCard(true);};
       img.onerror=function(){drawCard(false);};
-      img.src='https://raw.githubusercontent.com/galalemad75-creator/alsadaqa-aljaria/master/blessing_card_template.png';
+      img.src='https://raw.githubusercontent.com/galalemad75-creator/alsadaqa-aljaria/gh-pages/blessing_card_template.png';
     }
   });
 }
@@ -580,35 +592,18 @@ function genTextCard(i,r){
 // ===== GENERATE AUDIO =====
 function genAudio(i,r){
   return new Promise(async resolve=>{
-    const gender=voiceIsMale?'m':'f';
-    const mp3Url=CDN+'/'+gender+'/'+i+'.mp3';
     const enBody=fill(dEn[i],r);
     const callEn=rels[r.idx].cf;
     const m=r.gender==='m';
-    const enFull='O Allah, forgive '+callEn+' and have mercy on '+(m?'him':'them')+'. '+enBody;
-
-    // Download Arabic MP3 from CDN
-    try{
-      const resp=await fetch(mp3Url);
-      if(resp.ok){
-        const blob=await resp.blob();
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');
-        a.href=url;
-        a.download='dua_'+(i+1)+'_ar_'+gender+'.mp3';
-        document.body.appendChild(a);a.click();document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
-    }catch(e){console.warn('MP3 fetch failed:',e)}
-
-    // Also download English text as companion file
-    const enBlob=new Blob(['[English Translation]\n\n'+enFull],{type:'text/plain;charset=utf-8'});
-    const enUrl=URL.createObjectURL(enBlob);
-    const enA=document.createElement('a');
-    enA.href=enUrl;
-    enA.download='dua_'+(i+1)+'_en.txt';
-    document.body.appendChild(enA);enA.click();document.body.removeChild(enA);
-    URL.revokeObjectURL(enUrl);
+    const arBody=fill(dAr[i],r);
+    const title=tAr[i];
+    const fullText='🤲 نفحات الرحمة\n\n'+title+'\n\nاللهم اغفر '+r.call+' وارحم'+(m?'ه':'ها')+'\n\n'+arBody+'\n\n━━━━━━━━━━━━━━━━\n🇬🇧 O Allah, forgive '+callEn+' and have mercy on '+(m?'him':'them')+'. '+enBody+'\n\n✨ نفحات الرحمة — الصدقة الجارية على أرواح المسلمين';
+    const blob=new Blob([fullText],{type:'text/plain;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='dua_'+(i+1)+'_'+r.call.replace(/\s/g,'_')+'.txt';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     resolve();
   });
 }
@@ -616,6 +611,13 @@ function genAudio(i,r){
 // ===== INIT =====
 if(window.speechSynthesis){speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();speechSynthesis.getVoices();setTimeout(()=>speechSynthesis.getVoices(),500);setTimeout(()=>speechSynthesis.getVoices(),1500)}
 buildSel();
+// Pre-load template image for card download
+(function(){
+  const img=new Image();img.crossOrigin='anonymous';
+  img.onload=function(){templateImg=img};
+  img.onerror=function(){};
+  img.src='https://raw.githubusercontent.com/galalemad75-creator/alsadaqa-aljaria/gh-pages/blessing_card_template.png';
+})();
 </script>
 </body>
 </html>
