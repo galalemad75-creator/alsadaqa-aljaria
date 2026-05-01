@@ -395,12 +395,18 @@ function speak(text,langCode,pitchVal,cb){
   u.onend=fin;u.onerror=fin;speechSynthesis.speak(u);setTimeout(fin,15000);
 }
 function useGtts(text,langCode,cb){
-  const tl=langCode.startsWith('ar')?'ar':'en';
-  const a=new Audio("https://translate.google.com/translate_tts?ie=UTF-8&tl="+tl+"&q="+encodeURIComponent(text)+"&client=tw-ob");
-  a.playbackRate=0.82;
-  let done=false;const fin=()=>{if(!done){done=true;cb()}};
-  a.onended=fin;a.onerror=fin;
-  a.play().catch(fin);setTimeout(fin,20000);
+  if(langCode.startsWith('ar')&&typeof playingIdx!=='undefined'&&playingIdx>=0){
+    const gender=voiceIsMale?'m':'f';
+    const mp3Url=CDN+'/'+gender+'/'+playingIdx+'.mp3';
+    const a=new Audio(mp3Url);
+    let done=false;const fin=()=>{if(!done){done=true;cb()}};
+    a.onended=fin;a.onerror=function(){fin()};
+    a.play().catch(function(){fin()});
+    setTimeout(fin,30000);
+  }else{
+    let done=false;const fin=()=>{if(!done){done=true;cb()}};
+    setTimeout(fin,1500);
+  }
 }
 function buildTxt(r,i,l){const m=r.gender==='m',body=l==='ar'?fill(dAr[i],r):fill(dEn[i],r);if(l==='ar')return'اللهم اغفر '+r.call+' وارحم'+(m?'ه':'ها')+'. '+body;return'O Allah, forgive '+rels[r.idx].cf+' and have mercy on '+(m?'him':'them')+'. '+body}
 
