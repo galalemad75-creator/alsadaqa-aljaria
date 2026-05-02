@@ -511,10 +511,22 @@ function toggleAll(){
 function dlAudio(i){
   const r=getR();
   const txt=fEn(DEN[i],r).replace(/<[^>]+>/g,'').slice(0,190);
+  // Fetch audio blob so it downloads as real MP3 file
   const url='https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q='+encodeURIComponent(txt)+'&ttsspeed=0.9';
-  const a=document.createElement('a'); a.href=url; a.target='_blank';
-  a.download='prayer_'+(i+1)+'.mp3';
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  fetch(url)
+    .then(res=>res.blob())
+    .then(blob=>{
+      const burl=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=burl; a.download='prayer_'+(i+1)+'.mp3';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(burl),3000);
+    })
+    .catch(()=>{
+      // Fallback: open in new tab
+      window.open(url,'_blank');
+    });
 }
 
 // ─────────────────────────────────────────────
@@ -569,43 +581,43 @@ function makeCard(i){
     rr(ctx,50,125,W-100,H-500,22); ctx.stroke();
     // ── Header ──
     ctx.fillStyle='#0b3d2e'; rr(ctx,50,125,W-100,105,22); ctx.fill();
-    ctx.fillStyle='#f0c84a'; ctx.font='bold 54px serif'; ctx.textAlign='center';
+    ctx.fillStyle='#f0c84a'; ctx.font='bold 72px serif'; ctx.textAlign='center';
     ctx.fillText('Nafahat Al-Rahma',W/2,192);
-    ctx.fillStyle='#a8d5b8'; ctx.font='26px serif';
+    ctx.fillStyle='#a8d5b8'; ctx.font='34px serif';
     ctx.fillText('نَفَحَاتُ الرَّحْمَةِ  —  Ongoing Charity for Muslim Souls',W/2,228);
     // ── Bismillah ──
-    ctx.fillStyle='#0b3d2e'; ctx.font='bold 48px serif';
+    ctx.fillStyle='#0b3d2e'; ctx.font='bold 60px serif';
     ctx.fillText('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',W/2,302);
-    ctx.fillStyle='#b8860b'; ctx.font='28px serif'; ctx.fillText('◆ ❖ ◆',W/2,346);
+    ctx.fillStyle='#b8860b'; ctx.font='36px serif'; ctx.fillText('◆ ❖ ◆',W/2,346);
     // ── Title & for whom ──
-    ctx.fillStyle='#7a5000'; ctx.font='bold 46px sans-serif';
+    ctx.fillStyle='#7a5000'; ctx.font='bold 58px sans-serif';
     ctx.fillText(TEN[i],W/2,400);
-    ctx.fillStyle='#0b3d2e'; ctx.font='bold 44px serif';
+    ctx.fillStyle='#0b3d2e'; ctx.font='bold 56px serif';
     ctx.fillText('For: '+r.lbl,W/2,458);
     // ── Divider ──
     ctx.strokeStyle='#b8860b'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.moveTo(90,478); ctx.lineTo(W-90,478); ctx.stroke();
     // ── Arabic text — 48px ──
-    ctx.fillStyle='#111'; ctx.font='48px serif';
+    ctx.fillStyle='#111'; ctx.font='56px serif';
     ctx.textAlign='right'; ctx.direction='rtl';
     const arL=wrap(ctx,arTxt,W-160);
-    let y=545; arL.forEach(line=>{ ctx.fillText(line,W-75,y); y+=76; });
+    let y=545; arL.forEach(line=>{ ctx.fillText(line,W-75,y); y+=82; });
     // ── Divider ──
-    y+=12; ctx.textAlign='center'; ctx.fillStyle='#b8860b'; ctx.font='28px sans-serif';
+    y+=12; ctx.textAlign='center'; ctx.fillStyle='#b8860b'; ctx.font='36px sans-serif';
     ctx.fillText('— English Translation —',W/2,y); y+=52;
     // ── English text — 40px ──
-    ctx.fillStyle='#222'; ctx.font='40px serif';
+    ctx.fillStyle='#222'; ctx.font='50px serif';
     ctx.textAlign='left'; ctx.direction='ltr';
     const enL=wrap(ctx,enTxt,W-160);
-    enL.forEach(line=>{ ctx.fillText(line,75,y); y+=60; });
+    enL.forEach(line=>{ ctx.fillText(line,75,y); y+=68; });
     // ── Source ──
-    y+=18; ctx.textAlign='center'; ctx.fillStyle='#888'; ctx.font='italic 30px serif';
+    y+=18; ctx.textAlign='center'; ctx.fillStyle='#888'; ctx.font='italic 38px serif';
     ctx.fillText('— '+SRC[i]+' —',W/2,y);
     // ── Footer ──
     ctx.fillStyle='#0b3d2e'; ctx.fillRect(50,H-355,W-100,80);
-    ctx.fillStyle='#f0c84a'; ctx.font='bold 40px serif';
+    ctx.fillStyle='#f0c84a'; ctx.font='bold 50px serif';
     ctx.fillText('Nafahat Al-Rahma • Prayers for Muslim Souls',W/2,H-320);
-    ctx.fillStyle='#a8d5b8'; ctx.font='26px sans-serif';
+    ctx.fillStyle='#a8d5b8'; ctx.font='34px sans-serif';
     ctx.fillText('✨ Ongoing Charity • الصدقة الجارية ✨',W/2,H-286);
     // ── Save ──
     cv.toBlob(blob=>{
@@ -623,20 +635,41 @@ function makeCard(i){
 // ─────────────────────────────────────────────
 function makeTxt(i){
   const r=getR();
-  const arTxt=fAr(DAR[i],r).replace(/<[^>]+>/g,'');
-  const enTxt=fEn(DEN[i],r).replace(/<[^>]+>/g,'');
-  const content=[
-    'Nafahat Al-Rahma — Prayer #'+(i+1),
-    TEN[i], 'For: '+r.lbl, '',
-    arTxt, '',
-    enTxt, '',
-    '— '+SRC[i]+' —', '',
-    '✨ Nafahat Al-Rahma — Prayers for Muslim Souls'
-  ].join('\n');
-  const blob=new Blob(['\uFEFF'+content],{type:'text/plain;charset=utf-8'});
+  const arTxt=fAr(DAR[i],r);
+  const enTxt=fEn(DEN[i],r);
+  // Build content - English only for readability by non-Arabic users
+  // Arabic preserved below
+  const lines=[
+    '================================================',
+    'NAFAHAT AL-RAHMA — Prayer #'+(i+1),
+    TEN[i],
+    'For: '+r.lbl,
+    '================================================',
+    '',
+    '[ENGLISH]',
+    enTxt,
+    '',
+    '================================================',
+    '[ARABIC - النص العربي]',
+    arTxt,
+    '',
+    '================================================',
+    SRC[i],
+    'Nafahat Al-Rahma — Prayers for Muslim Souls',
+    'https://galalemad75-creator.github.io/alsadaqa-aljaria/',
+    '================================================',
+  ].join('\r\n');
+  // Use UTF-16 LE BOM for maximum Arabic compatibility in Windows
+  // Convert to UTF-16 LE
+  const utf16 = '\xFF\xFE' + lines.split('').map(c=>{
+    const code = c.charCodeAt(0);
+    return String.fromCharCode(code & 0xFF, (code >> 8) & 0xFF);
+  }).join('');
+  // Actually simpler: just use UTF-8 BOM which works everywhere
+  const blob=new Blob(['\uFEFF'+lines],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='prayer_'+(i+1)+'.txt';
+  a.download='prayer_'+(i+1)+'_'+r.cf.replace(/\s/g,'_')+'.txt';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
 }
