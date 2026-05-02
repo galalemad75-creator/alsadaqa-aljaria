@@ -97,6 +97,7 @@ body.dark .dua-head{background:linear-gradient(135deg,#102018,#0d4a3a)}
 .dbtn-play.on{background:linear-gradient(135deg,#c0392b,#e74c3c)}
 .dbtn-dl{background:linear-gradient(135deg,#2a6b9f,#3a8bcf);color:#fff}
 .dbtn-sh{background:linear-gradient(135deg,#6b3fa0,#9b59b6);color:#fff}
+.dbtn-audio{background:linear-gradient(135deg,#c0392b,#e67e22);color:#fff}
 
 /* DUA BODY */
 .dua-body{padding:14px}
@@ -142,7 +143,7 @@ body.dark .dl-status{color:var(--gold)}
 @media(max-width:400px){.hero h1{font-size:22px}.ar-text{font-size:15px}.en-text{font-size:12px}}
 </style>
 <!-- ResponsiveVoice: natural human TTS, free for non-commercial -->
-<script src="https://code.responsivevoice.org/responsivevoice.js?key=FREE"></script>
+
 </head>
 <body>
 <div class="app">
@@ -395,7 +396,8 @@ function go(){
         <span class="dua-title">${tEn[i]}</span>
         <div class="dua-acts">
           <button class="dbtn dbtn-play" id="pb${i}" onclick="event.stopPropagation();toggleDua(${i})" title="Play">▶</button>
-          <button class="dbtn dbtn-dl" onclick="event.stopPropagation();openDl(${i})" title="Download">⬇</button>
+          <button class="dbtn dbtn-dl" onclick="event.stopPropagation();openDl(${i})" title="Download Card">⬇</button>
+          <button class="dbtn dbtn-audio" onclick="event.stopPropagation();downloadAudio(${i})" title="Download Audio">🔉</button>
           <button class="dbtn dbtn-sh" onclick="event.stopPropagation();shareDua(${i})" title="Share">📤</button>
           <span class="dua-num">${i+1}</span>
         </div>
@@ -415,60 +417,163 @@ function go(){
 }
 
 // =====================================================
-// AUDIO ENGINE — ResponsiveVoice (natural human voice)
+// AUDIO ENGINE
+// Strategy: Web Speech API (best available voice)
+//           + Google TTS fallback
 // =====================================================
+let currentAudio = null;
 let rvPlaying = false;
+let synthVoices = [];
+
+// Load voices early and keep updating
+function loadVoices(){
+  if(!window.speechSynthesis) return;
+  synthVoices = speechSynthesis.getVoices();
+}
+if(window.speechSynthesis){
+  speechSynthesis.addEventListener('voiceschanged', loadVoices);
+  loadVoices();
+  setTimeout(loadVoices, 300);
+  setTimeout(loadVoices, 1000);
+}
+
+function getBestVoice(lang){
+  // lang = 'en' or 'ar'
+  const all = synthVoices.length ? synthVoices : (window.speechSynthesis ? speechSynthesis.getVoices() : []);
+  if(lang === 'ar'){
+    // Look for Arabic voices
+    const arVoices = all.filter(v => v.lang && v.lang.toLowerCase().startsWith('ar'));
+    if(arVoices.length){
+      if(voiceIsMale){
+        return arVoices.find(v => /male|man|omar|hadi|tarik/i.test(v.name)) || arVoices[0];
+      } else {
+        return arVoices.find(v => /female|woman|laila|fatima|zeina/i.test(v.name)) || arVoices[0];
+      }
+    }
+    return null; // no Arabic voice → use Google TTS
+  } else {
+    // English voices - prefer Google/natural voices
+    const enVoices = all.filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+    if(voiceIsMale){
+      return enVoices.find(v => /google.*uk|google.*male|daniel|james|oliver|arthur/i.test(v.name))
+          || enVoices.find(v => /google/i.test(v.name))
+          || enVoices[0] || null;
+    } else {
+      return enVoices.find(v => /google.*uk|google.*female|samantha|karen|moira|serena/i.test(v.name))
+          || enVoices.find(v => /google/i.test(v.name))
+          || enVoices[0] || null;
+    }
+  }
+}
 
 function stopCurrentAudio(){
-  if(typeof responsiveVoice !== 'undefined'){
-    try{ responsiveVoice.cancel(); }catch(e){}
-  }
   rvPlaying = false;
-}
-
-function getVoiceName(tl){
-  // ResponsiveVoice voice names
-  if(tl === 'ar'){
-    return voiceIsMale ? 'Arabic Male' : 'Arabic Female';
-  } else {
-    return voiceIsMale ? 'UK English Male' : 'UK English Female';
+  try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
+  if(currentAudio){
+    try{ currentAudio.pause(); currentAudio.src=''; currentAudio.remove(); }catch(e){}
+    currentAudio = null;
   }
 }
 
-function speak(text, tl, cb){
-  if(typeof responsiveVoice === 'undefined'){
-    // Fallback to Google TTS if ResponsiveVoice fails to load
-    gtfallback(text, tl, cb);
-    return;
+// Main speak function
+function speak(text, lang, cb){
+  let done = false;
+  const fin = ()=>{ if(done) return; done=true; cb(); };
+
+  // Try Web Speech API first for English (better quality)
+  if(lang === 'en' && window.speechSynthesis){
+    const voice = getBestVoice('en');
+    if(voice){
+      speechSynthesis.cancel();
+      const chunks = splitSpeech(text, 200);
+      speakChunksSynth(chunks, voice, lang, 0, fin);
+      return;
+    }
   }
-  const voiceName = getVoiceName(tl);
+
+  // For Arabic OR if no English voice: use Google TTS (most natural Arabic)
+  const chunks = splitSpeech(text, 190);
+  speakChunksGTTS(chunks, lang, 0, fin);
+}
+
+function splitSpeech(text, max){
+  if(text.length <= max) return [text];
+  const out=[]; let rem=text;
+  while(rem.length > max){
+    let cut = rem.lastIndexOf('. ', max);
+    if(cut < 40) cut = rem.lastIndexOf(', ', max);
+    if(cut < 40) cut = rem.lastIndexOf(' ', max);
+    if(cut < 40) cut = max;
+    out.push(rem.slice(0, cut+1).trim());
+    rem = rem.slice(cut+1).trim();
+  }
+  if(rem) out.push(rem);
+  return out;
+}
+
+function speakChunksSynth(chunks, voice, lang, idx, fin){
+  if(idx >= chunks.length){ fin(); return; }
+  if(playingIdx < 0 && !playingAll){ fin(); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(chunks[idx]);
+  u.voice = voice;
+  u.lang = lang === 'ar' ? 'ar-SA' : 'en-GB';
+  u.rate = lang === 'ar' ? 0.82 : 0.88;
+  u.pitch = voiceIsMale ? 0.85 : 1.1;
+  u.volume = 1;
+  let moved = false;
+  const next = ()=>{ if(moved) return; moved=true; speakChunksSynth(chunks,voice,lang,idx+1,fin); };
+  u.onend = next;
+  u.onerror = ()=>{ if(!moved){ moved=true; speakChunksGTTS([chunks[idx]],lang,0,()=>speakChunksSynth(chunks,voice,lang,idx+1,fin)); } };
   rvPlaying = true;
-  responsiveVoice.speak(text, voiceName, {
-    rate: tl==='ar' ? 0.85 : 0.9,
-    pitch: 1,
-    volume: 1,
-    onend: ()=>{ rvPlaying=false; cb(); },
-    onerror: ()=>{ rvPlaying=false; gtfallback(text,tl,cb); }
-  });
-  // Safety timeout
-  setTimeout(()=>{ if(rvPlaying){ rvPlaying=false; cb(); } }, 30000);
+  speechSynthesis.speak(u);
+  // iOS Safari workaround: resume if paused
+  setTimeout(()=>{ try{ if(speechSynthesis.paused) speechSynthesis.resume(); }catch(e){} },100);
+  setTimeout(()=>{ if(!moved) next(); }, 20000);
 }
 
-// Fallback: Google Translate TTS
-let currentAudio = null;
-function gtfallback(text, tl, cb){
-  if(currentAudio){ try{currentAudio.pause();currentAudio.remove();}catch(e){} currentAudio=null; }
-  const url='https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl='+tl
-    +'&q='+encodeURIComponent(text.slice(0,190))+'&ttsspeed=0.9';
-  const a=new Audio(url);
+function speakChunksGTTS(chunks, lang, idx, fin){
+  if(idx >= chunks.length){ fin(); return; }
+  if(playingIdx < 0 && !playingAll && idx > 0){ fin(); return; }
+  if(currentAudio){ try{currentAudio.pause();currentAudio.src='';currentAudio.remove();}catch(e){} currentAudio=null; }
+  const tl = lang === 'ar' ? 'ar' : 'en';
+  const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl='+tl
+    +'&q='+encodeURIComponent(chunks[idx])+'&ttsspeed=0.9';
+  const a = new Audio(url);
   a.setAttribute('playsinline','');
-  currentAudio=a;
+  currentAudio = a;
   document.body.appendChild(a);
-  let done=false;
-  const fin=()=>{ if(done)return; done=true; try{a.remove();}catch(e){} currentAudio=null; cb(); };
-  a.onended=fin; a.onerror=fin;
-  a.play().catch(fin);
-  setTimeout(fin, 25000);
+  let moved = false;
+  const next = ()=>{
+    if(moved) return; moved=true;
+    try{a.pause();a.src='';a.remove();}catch(e){}
+    if(currentAudio===a) currentAudio=null;
+    speakChunksGTTS(chunks,lang,idx+1,fin);
+  };
+  a.onended = next;
+  a.onerror = ()=>{ if(!moved){moved=true;try{a.remove();}catch(e){}if(currentAudio===a)currentAudio=null;fin();} };
+  a.play().catch(()=>{ if(!moved) next(); });
+  setTimeout(()=>{ if(!moved) next(); }, 22000);
+}
+
+// Audio download: saves MP3 from Google TTS
+function downloadAudio(i){
+  const r = getRel();
+  const m = r.gender==='m';
+  const enText = buildEnText(r,i);
+  const arText = fill(dAr[i],r).replace(/<[^>]+>/g,'');
+  const text = enText + ' ... ' + arText;
+  const shortText = text.slice(0,190);
+  const tl = 'en';
+  const url = 'https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl='+tl
+    +'&q='+encodeURIComponent(shortText)+'&ttsspeed=0.9';
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'prayer_'+(i+1)+'.mp3';
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 function buildEnText(r,i){
   const m=r.gender==='m';
