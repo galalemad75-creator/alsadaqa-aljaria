@@ -393,11 +393,22 @@ function bestEnVoice(){
   const voices=wsv.length?wsv:(window.speechSynthesis?speechSynthesis.getVoices():[]);
   const en=voices.filter(v=>v.lang&&v.lang.toLowerCase().startsWith('en'));
   if(!en.length) return null;
-  // Prefer Google voices (most natural sounding)
   const gv=en.find(v=>/google/i.test(v.name));
   if(gv) return gv;
   if(male) return en.find(v=>/daniel|james|oliver|aaron|arthur/i.test(v.name))||en[0];
-  return en.find(v=>/samantha|karen|victoria|moira|serena/i.test(v.name))||en[0];
+  return en.find(v=>/samantha|karen|victoria|moira|serena|zira|hazel|susan/i.test(v.name))||en[0];
+}
+
+function bestArVoice(preferFemale){
+  const voices=wsv.length?wsv:(window.speechSynthesis?speechSynthesis.getVoices():[]);
+  const ar=voices.filter(v=>v.lang&&v.lang.toLowerCase().startsWith('ar'));
+  if(!ar.length) return null;
+  if(preferFemale){
+    return ar.find(v=>/salma|layla|hala|dina|nora|female|woman/i.test(v.name))
+      || ar.find(v=>!/maged|tarik|majed|male|man/i.test(v.name))
+      || ar[ar.length-1];
+  }
+  return ar.find(v=>/maged|tarik|majed|male|man/i.test(v.name)) || ar[0];
 }
 
 function chunk(text,max){
@@ -416,7 +427,32 @@ function speakEN(text,cb){
   if(v && window.speechSynthesis){ wsChain(chunk(text,220),v,0,cb); }
   else { gttsChain(chunk(text,190),'en',0,cb); }
 }
-function speakAR(text,cb){ gttsChain(chunk(text,190),'ar',0,cb); }
+function speakAR(text,cb){
+  const r=getR();
+  const useFemale=(!male||r.v==='f');
+  const arV=bestArVoice(useFemale);
+  if(arV && window.speechSynthesis){
+    arWsChain(chunk(text,190),arV,0,cb,useFemale);
+  } else {
+    gttsChain(chunk(text,190),'ar',0,cb);
+  }
+}
+
+function arWsChain(chunks,v,i,cb,female){
+  if(i>=chunks.length){cb();return;}
+  if(playing<0&&!allPlay&&i>0){cb();return;}
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(chunks[i]);
+  u.voice=v; u.lang='ar-SA';
+  u.rate=female?0.82:0.86; u.pitch=female?1.18:0.88; u.volume=1;
+  let done=false;
+  const nxt=()=>{if(done)return;done=true;arWsChain(chunks,v,i+1,cb,female);};
+  u.onend=nxt;
+  u.onerror=()=>{if(!done){done=true;gtts(chunks[i],'ar',()=>arWsChain(chunks,v,i+1,cb,female));}};
+  speechSynthesis.speak(u);
+  setTimeout(()=>{try{if(speechSynthesis.paused)speechSynthesis.resume();}catch(e){}},200);
+  setTimeout(()=>{if(!done)nxt();},20000);
+}
 
 function wsChain(chunks,v,i,cb){
   if(i>=chunks.length){ cb(); return; }
@@ -574,51 +610,52 @@ function makeCard(i){
     // ── Background: full template ──
     if(TPL.ok){ ctx.drawImage(TPL,0,0,W,H); }
     else{ ctx.fillStyle='#f5f0e8'; ctx.fillRect(0,0,W,H); }
-    // ── Content panel ──
-    ctx.fillStyle='rgba(253,250,240,0.94)';
-    rr(ctx,50,125,W-100,H-500,22); ctx.fill();
+    // ── Content panel — semi-transparent so background shows through ──
+    ctx.fillStyle='rgba(253,250,240,0.82)';
+    rr(ctx,40,110,W-80,H-220,24); ctx.fill();
     ctx.strokeStyle='#b8860b'; ctx.lineWidth=4;
-    rr(ctx,50,125,W-100,H-500,22); ctx.stroke();
+    rr(ctx,40,110,W-80,H-220,24); ctx.stroke();
     // ── Header ──
-    ctx.fillStyle='#0b3d2e'; rr(ctx,50,125,W-100,105,22); ctx.fill();
-    ctx.fillStyle='#f0c84a'; ctx.font='bold 72px serif'; ctx.textAlign='center';
-    ctx.fillText('Nafahat Al-Rahma',W/2,192);
-    ctx.fillStyle='#a8d5b8'; ctx.font='34px serif';
-    ctx.fillText('نَفَحَاتُ الرَّحْمَةِ  —  Ongoing Charity for Muslim Souls',W/2,228);
+    ctx.fillStyle='rgba(11,61,46,0.93)'; rr(ctx,40,110,W-80,112,24); ctx.fill();
+    ctx.fillStyle='#f0c84a'; ctx.font='bold 68px serif'; ctx.textAlign='center';
+    ctx.fillText('Nafahat Al-Rahma',W/2,182);
+    ctx.fillStyle='#a8d5b8'; ctx.font='32px serif';
+    ctx.fillText('نَفَحَاتُ الرَّحْمَةِ  —  Ongoing Charity for Muslim Souls',W/2,216);
     // ── Bismillah ──
-    ctx.fillStyle='#0b3d2e'; ctx.font='bold 60px serif';
-    ctx.fillText('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',W/2,302);
-    ctx.fillStyle='#b8860b'; ctx.font='36px serif'; ctx.fillText('◆ ❖ ◆',W/2,346);
+    ctx.fillStyle='#0b3d2e'; ctx.font='bold 58px serif';
+    ctx.fillText('بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',W/2,292);
+    ctx.fillStyle='#b8860b'; ctx.font='36px serif'; ctx.fillText('✦ ✦ ✦',W/2,336);
     // ── Title & for whom ──
-    ctx.fillStyle='#7a5000'; ctx.font='bold 58px sans-serif';
-    ctx.fillText(TEN[i],W/2,400);
-    ctx.fillStyle='#0b3d2e'; ctx.font='bold 56px serif';
-    ctx.fillText('For: '+r.lbl,W/2,458);
+    ctx.fillStyle='#7a5000'; ctx.font='bold 54px sans-serif';
+    ctx.fillText(TEN[i],W/2,390);
+    ctx.fillStyle='#0b3d2e'; ctx.font='bold 52px serif';
+    ctx.fillText('For: '+r.lbl,W/2,446);
     // ── Divider ──
     ctx.strokeStyle='#b8860b'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(90,478); ctx.lineTo(W-90,478); ctx.stroke();
-    // ── Arabic text — 48px ──
-    ctx.fillStyle='#111'; ctx.font='56px serif';
+    ctx.beginPath(); ctx.moveTo(90,466); ctx.lineTo(W-90,466); ctx.stroke();
+    // ── Arabic text ──
+    ctx.fillStyle='#111'; ctx.font='52px serif';
     ctx.textAlign='right'; ctx.direction='rtl';
     const arL=wrap(ctx,arTxt,W-160);
-    let y=545; arL.forEach(line=>{ ctx.fillText(line,W-75,y); y+=82; });
+    let y=530; arL.forEach(line=>{ ctx.fillText(line,W-75,y); y+=78; });
     // ── Divider ──
-    y+=12; ctx.textAlign='center'; ctx.fillStyle='#b8860b'; ctx.font='36px sans-serif';
-    ctx.fillText('— English Translation —',W/2,y); y+=52;
-    // ── English text — 40px ──
-    ctx.fillStyle='#222'; ctx.font='50px serif';
+    y+=10; ctx.textAlign='center'; ctx.fillStyle='#b8860b'; ctx.font='34px sans-serif';
+    ctx.fillText('— English Translation —',W/2,y); y+=48;
+    // ── English text ──
+    ctx.fillStyle='#222'; ctx.font='46px serif';
     ctx.textAlign='left'; ctx.direction='ltr';
     const enL=wrap(ctx,enTxt,W-160);
-    enL.forEach(line=>{ ctx.fillText(line,75,y); y+=68; });
+    enL.forEach(line=>{ ctx.fillText(line,75,y); y+=64; });
     // ── Source ──
-    y+=18; ctx.textAlign='center'; ctx.fillStyle='#888'; ctx.font='italic 38px serif';
-    ctx.fillText('— '+SRC[i]+' —',W/2,y);
-    // ── Footer ──
-    ctx.fillStyle='#0b3d2e'; ctx.fillRect(50,H-355,W-100,80);
-    ctx.fillStyle='#f0c84a'; ctx.font='bold 50px serif';
-    ctx.fillText('Nafahat Al-Rahma • Prayers for Muslim Souls',W/2,H-320);
-    ctx.fillStyle='#a8d5b8'; ctx.font='34px sans-serif';
-    ctx.fillText('✨ Ongoing Charity • الصدقة الجارية ✨',W/2,H-286);
+    y+=16; ctx.textAlign='center'; ctx.fillStyle='#555'; ctx.font='italic 36px serif';
+    ctx.fillText('— '+SRC[i]+' —',W/2,y); y+=28;
+    // ── Footer: positioned dynamically below content, min at H-280 ──
+    const footerY = Math.max(y+30, H-290);
+    ctx.fillStyle='rgba(11,61,46,0.92)'; ctx.fillRect(40,footerY,W-80,90);
+    ctx.fillStyle='#f0c84a'; ctx.font='bold 46px serif';
+    ctx.fillText('Nafahat Al-Rahma • Prayers for Muslim Souls',W/2,footerY+46);
+    ctx.fillStyle='#a8d5b8'; ctx.font='32px sans-serif';
+    ctx.fillText('✨ Ongoing Charity • الصدقة الجارية ✨',W/2,footerY+82);
     // ── Save ──
     cv.toBlob(blob=>{
       const a=document.createElement('a');
@@ -637,8 +674,6 @@ function makeTxt(i){
   const r=getR();
   const arTxt=fAr(DAR[i],r);
   const enTxt=fEn(DEN[i],r);
-  // Build content - English only for readability by non-Arabic users
-  // Arabic preserved below
   const lines=[
     '================================================',
     'NAFAHAT AL-RAHMA — Prayer #'+(i+1),
@@ -646,12 +681,12 @@ function makeTxt(i){
     'For: '+r.lbl,
     '================================================',
     '',
-    '[ENGLISH]',
-    enTxt,
+    '[ARABIC — النص العربي]',
+    arTxt,
     '',
     '================================================',
-    '[ARABIC - النص العربي]',
-    arTxt,
+    '[ENGLISH — الترجمة الإنجليزية]',
+    enTxt,
     '',
     '================================================',
     SRC[i],
@@ -659,13 +694,7 @@ function makeTxt(i){
     'https://galalemad75-creator.github.io/alsadaqa-aljaria/',
     '================================================',
   ].join('\r\n');
-  // Use UTF-16 LE BOM for maximum Arabic compatibility in Windows
-  // Convert to UTF-16 LE
-  const utf16 = '\xFF\xFE' + lines.split('').map(c=>{
-    const code = c.charCodeAt(0);
-    return String.fromCharCode(code & 0xFF, (code >> 8) & 0xFF);
-  }).join('');
-  // Actually simpler: just use UTF-8 BOM which works everywhere
+  // UTF-8 BOM only — ensures Arabic displays correctly without triggering Word
   const blob=new Blob(['\uFEFF'+lines],{type:'text/plain;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
